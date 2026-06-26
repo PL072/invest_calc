@@ -1,0 +1,700 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Калькулятор инвестора / Investment Calculator</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap');
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  /* ── DARK THEME (default) ── */
+  :root {
+    --bg:       #0A0E1A;
+    --surface:  #111827;
+    --surface2: #1A2235;
+    --border:   #1F2D45;
+    --accent:   #10B981;
+    --accent2:  #10B981;
+    --gold:     #F59E0B;
+    --danger:   #EF4444;
+    --text:     #F1F5F9;
+    --muted:    #64748B;
+    --hero-grad: rgba(16,185,129,0.10);
+    --grid-line: #1F2D45;
+    --grid-lbl:  #64748B;
+    --chart-invested: #334155;
+  }
+
+  /* ── LIGHT THEME ── */
+  body.light {
+    --bg:       #F0F4F8;
+    --surface:  #FFFFFF;
+    --surface2: #E8EFF7;
+    --border:   #CBD5E1;
+    --accent:   #059669;
+    --accent2:  #059669;
+    --gold:     #D97706;
+    --danger:   #DC2626;
+    --text:     #0F172A;
+    --muted:    #64748B;
+    --hero-grad: rgba(16,185,129,0.07);
+    --grid-line: #CBD5E1;
+    --grid-lbl:  #94A3B8;
+    --chart-invested: #94A3B8;
+  }
+
+  body {
+    font-family: 'Inter', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    line-height: 1.5;
+    transition: background .25s, color .25s;
+  }
+
+  /* ── TOP BAR ── */
+  .top-bar {
+    position: fixed; top: 0; right: 0; left: 0; z-index: 100;
+    display: flex; justify-content: flex-end; align-items: center;
+    padding: 10px 20px; gap: 6px;
+    background: rgba(10,14,26,0.88);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+    transition: background .25s;
+  }
+  body.light .top-bar { background: rgba(240,244,248,0.92); }
+
+  .top-btn {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px; font-weight: 600;
+    letter-spacing: 1px; text-transform: uppercase;
+    padding: 5px 12px; border-radius: 6px; cursor: pointer;
+    border: 1px solid var(--border);
+    background: transparent; color: var(--muted);
+    transition: all .2s;
+  }
+  .top-btn.active {
+    background: var(--accent); border-color: var(--accent); color: #fff;
+  }
+
+  /* theme toggle icon button */
+  .theme-btn {
+    width: 32px; height: 32px; border-radius: 8px;
+    border: 1px solid var(--border);
+    background: transparent; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px; transition: all .2s; margin-right: 6px;
+  }
+  .theme-btn:hover { background: var(--surface2); }
+
+  /* ── HERO ── */
+  .hero {
+    padding: 110px 24px 56px;
+    text-align: center;
+    background: radial-gradient(ellipse 80% 60% at 50% 0%, var(--hero-grad) 0%, transparent 70%);
+  }
+  .hero-eyebrow {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px; letter-spacing: 3px;
+    text-transform: uppercase; color: var(--accent); margin-bottom: 20px;
+  }
+  .hero h1 {
+    font-size: clamp(30px, 6vw, 60px); font-weight: 800;
+    line-height: 1.05; letter-spacing: -2px;
+    background: linear-gradient(135deg, var(--text) 0%, var(--muted) 100%);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 18px;
+  }
+  .hero p { font-size: clamp(14px, 2vw, 17px); color: var(--muted); max-width: 520px; margin: 0 auto; }
+
+  /* ── LAYOUT ── */
+  .main { max-width: 1100px; margin: 0 auto; padding: 0 16px 80px; }
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  @media(max-width:700px){ .grid-2 { grid-template-columns: 1fr; } }
+  .grid-4 { display: grid; grid-template-columns: repeat(4,1fr); gap: 12px; }
+  @media(max-width:900px){ .grid-4 { grid-template-columns: repeat(2,1fr); } }
+  @media(max-width:480px){ .grid-4 { grid-template-columns: 1fr 1fr; } }
+  .mb-24 { margin-bottom: 24px; }
+
+  /* ── CARD ── */
+  .card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 16px; padding: 24px;
+    transition: background .25s, border-color .25s;
+  }
+  .card-title {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px; letter-spacing: 2.5px;
+    text-transform: uppercase; color: var(--muted); margin-bottom: 20px;
+  }
+
+  /* ── RANGE SLIDERS ──
+     Key fix: track-wrap is relative, height=20px to contain the thumb (18px).
+     The colored fill sits at top:8px (centred on the 4px track inside 20px wrapper).
+     The native input is stretched over the whole wrapper, opacity:0, z-index:2
+     so it captures all pointer events while the visible fill sits below it.
+  ── */
+  .field { margin-bottom: 22px; }
+  .field label {
+    display: flex; justify-content: space-between; align-items: baseline;
+    font-size: 13px; color: var(--muted); margin-bottom: 10px;
+  }
+  .field label .val {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 16px; font-weight: 600; color: var(--text);
+  }
+
+  .track-wrap {
+    position: relative;
+    height: 20px;          /* enough for 18px thumb + glow */
+  }
+
+  /* grey background track */
+  .track-bg {
+    position: absolute;
+    left: 0; right: 0;
+    top: 8px;              /* (20-4)/2 = 8 */
+    height: 4px;
+    border-radius: 2px;
+    background: var(--surface2);
+    pointer-events: none;
+  }
+
+  /* coloured fill — sits on top of track-bg, below the range input */
+  .track-fill {
+    position: absolute;
+    left: 0;
+    top: 8px;
+    height: 4px;
+    border-radius: 2px;
+    pointer-events: none;
+    z-index: 1;
+    transition: width .08s linear;
+  }
+
+  /* the actual range input — transparent, full size, on top */
+  .track-wrap input[type=range] {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    cursor: pointer;
+    z-index: 2;
+    margin: 0;
+  }
+
+  /* visible custom thumb rendered via a pseudo-overlay div */
+  .thumb-overlay {
+    position: absolute;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    width: 18px; height: 18px;
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 1;            /* same layer as fill, below transparent input */
+    transition: left .08s linear;
+    box-shadow: 0 0 0 4px rgba(16,185,129,.25);
+  }
+
+  /* ── SELECT ── */
+  .currency-select {
+    font-family: 'JetBrains Mono', monospace; font-size: 13px;
+    background: var(--surface2); border: 1px solid var(--border);
+    color: var(--text); padding: 8px 10px; border-radius: 8px;
+    outline: none; cursor: pointer; width: 100%;
+    transition: background .25s, border-color .25s;
+  }
+
+  /* ── STAT CARDS ── */
+  .stat {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 12px; padding: 16px 18px;
+    display: flex; flex-direction: column; gap: 4px;
+    transition: background .25s;
+  }
+  .stat-label { font-family: 'JetBrains Mono', monospace; font-size: 9px; letter-spacing: 2px; text-transform: uppercase; color: var(--muted); }
+  .stat-val   { font-family: 'JetBrains Mono', monospace; font-size: clamp(18px,3vw,24px); font-weight: 700; line-height: 1; }
+  .stat-sub   { font-size: 11px; color: var(--muted); margin-top: 2px; }
+  .c-green { color: var(--accent2); }
+  .c-gold  { color: var(--gold); }
+  .c-muted { color: var(--muted); }
+
+  /* ── CHART ── */
+  .chart-wrap {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 16px; padding: 24px; margin-bottom: 16px;
+    transition: background .25s;
+  }
+  .chart-header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 20px; }
+  .chart-legend { display: flex; gap: 16px; flex-wrap: wrap; }
+  .legend-item  { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--muted); }
+  .legend-dot   { width: 8px; height: 8px; border-radius: 50%; flex-shrink:0; }
+  svg.chart { width: 100%; overflow: visible; display: block; }
+
+  /* ── TABLE ── */
+  .table-wrap { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  thead th {
+    font-family: 'JetBrains Mono', monospace; font-size: 9px; letter-spacing: 2px;
+    text-transform: uppercase; color: var(--muted);
+    padding: 0 12px 12px; text-align: right; white-space: nowrap;
+  }
+  thead th:first-child { text-align: left; }
+  tbody tr { border-top: 1px solid var(--border); }
+  tbody tr:hover { background: var(--surface2); }
+  tbody td { padding: 10px 12px; font-family: 'JetBrains Mono', monospace; font-size: 12px; text-align: right; color: var(--muted); white-space: nowrap; }
+  tbody td:first-child { text-align: left; color: var(--text); }
+  tbody td.hl { color: var(--accent2); font-weight: 600; }
+  tbody tr.goal-row td { color: var(--accent2); }
+
+  /* ── INSIGHT ── */
+  .insight {
+    border-radius: 12px; padding: 14px 18px;
+    font-size: 13px; line-height: 1.65;
+    border-left: 3px solid; margin-bottom: 10px;
+  }
+  .insight.green { background: rgba(16,185,129,.08); border-color: var(--accent2); color: #6EE7B7; }
+  .insight.blue  { background: rgba(99,102,241,.08); border-color: #818CF8; color: #A5B4FC; }
+  .insight.gold  { background: rgba(245,158,11,.08); border-color: var(--gold);    color: #FCD34D; }
+  .insight.red   { background: rgba(239,68,68,.08);  border-color: var(--danger);  color: #FCA5A5; }
+  body.light .insight.green { color: #065F46; }
+  body.light .insight.blue  { color: #3730A3; }
+  body.light .insight.gold  { color: #92400E; }
+  body.light .insight.red   { color: #991B1B; }
+
+  /* ── POWER NUMBER ── */
+  .power-number {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: clamp(44px,10vw,88px); font-weight: 800;
+    letter-spacing: -3px; line-height: 1;
+    background: linear-gradient(135deg, var(--accent2) 0%, #3B82F6 100%);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    background-clip: text;
+    text-align: center; padding: 28px 0 6px;
+  }
+  .power-label { text-align: center; color: var(--muted); font-size: 14px; margin-bottom: 28px; }
+
+  /* ── FOOTER ── */
+  footer { text-align: center; padding: 36px 24px; font-size: 12px; color: var(--muted); border-top: 1px solid var(--border); }
+
+  @media(max-width:480px){ .card { padding: 16px; } .hero { padding: 96px 16px 44px; } }
+</style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<div class="top-bar">
+  <button class="theme-btn" id="theme-btn" onclick="toggleTheme()" title="Toggle theme">🌙</button>
+  <button class="top-btn active" onclick="setLang('ru')" id="btn-ru">RU</button>
+  <button class="top-btn" onclick="setLang('en')" id="btn-en">EN</button>
+</div>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-eyebrow" data-ru="Сила сложного процента" data-en="The Power of Compound Interest">Сила сложного процента</div>
+  <h1 data-ru="Калькулятор инвестора" data-en="Investment Calculator">Калькулятор инвестора</h1>
+  <p data-ru="Введи свои параметры и узнай, сколько может принести регулярное инвестирование за любой срок." data-en="Enter your parameters and see what regular investing can generate over any time horizon.">Введи свои параметры и узнай, сколько может принести регулярное инвестирование за любой срок.</p>
+</div>
+
+<div class="main">
+
+  <!-- INPUTS -->
+  <div class="grid-2 mb-24">
+
+    <!-- Left -->
+    <div class="card">
+      <div class="card-title" data-ru="Параметры портфеля" data-en="Portfolio Parameters">Параметры портфеля</div>
+
+      <div class="field">
+        <label><span data-ru="Начальный капитал" data-en="Starting Capital">Начальный капитал</span><span class="val" id="lbl-initial"></span></label>
+        <div class="track-wrap" id="wrap-initial">
+          <div class="track-bg"></div>
+          <div class="track-fill" id="tf-initial"></div>
+          <div class="thumb-overlay" id="th-initial"></div>
+          <input type="range" id="r-initial" min="0" max="500000" step="1000" value="10000" oninput="update()">
+        </div>
+      </div>
+
+      <div class="field">
+        <label><span data-ru="Ежемесячный взнос" data-en="Monthly Contribution">Ежемесячный взнос</span><span class="val" id="lbl-monthly"></span></label>
+        <div class="track-wrap" id="wrap-monthly">
+          <div class="track-bg"></div>
+          <div class="track-fill" id="tf-monthly"></div>
+          <div class="thumb-overlay" id="th-monthly"></div>
+          <input type="range" id="r-monthly" min="0" max="5000" step="50" value="300" oninput="update()">
+        </div>
+      </div>
+
+      <div class="field">
+        <label><span data-ru="Горизонт инвестирования" data-en="Investment Horizon">Горизонт</span><span class="val" id="lbl-years"></span></label>
+        <div class="track-wrap" id="wrap-years">
+          <div class="track-bg"></div>
+          <div class="track-fill" id="tf-years"></div>
+          <div class="thumb-overlay" id="th-years"></div>
+          <input type="range" id="r-years" min="1" max="40" step="1" value="20" oninput="update()">
+        </div>
+      </div>
+
+      <div class="field">
+        <label><span data-ru="Валюта отображения" data-en="Display Currency">Валюта</span></label>
+        <select class="currency-select" id="currency" onchange="update()">
+          <option value="$">$ USD</option>
+          <option value="₸">₸ KZT</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Right -->
+    <div class="card">
+      <div class="card-title" data-ru="Сценарии доходности" data-en="Return Scenarios">Сценарии доходности</div>
+
+      <div class="field">
+        <label><span data-ru="Рост портфеля / год" data-en="Portfolio Return / yr">Рост портфеля / год</span><span class="val" id="lbl-return" style="color:var(--accent2)"></span></label>
+        <div class="track-wrap" id="wrap-return">
+          <div class="track-bg"></div>
+          <div class="track-fill" id="tf-return" style="background:var(--accent2)"></div>
+          <div class="thumb-overlay" id="th-return" style="background:var(--accent2); box-shadow:0 0 0 4px rgba(16,185,129,.25)"></div>
+          <input type="range" id="r-return" min="0" max="20" step="0.5" value="9" oninput="update()">
+        </div>
+      </div>
+
+      <div class="field">
+        <label><span data-ru="Дивидендная доходность" data-en="Dividend Yield">Дивидендная доходность</span><span class="val" id="lbl-div" style="color:var(--gold)"></span></label>
+        <div class="track-wrap" id="wrap-div">
+          <div class="track-bg"></div>
+          <div class="track-fill" id="tf-div" style="background:var(--gold)"></div>
+          <div class="thumb-overlay" id="th-div" style="background:var(--gold); box-shadow:0 0 0 4px rgba(245,158,11,.25)"></div>
+          <input type="range" id="r-div" min="0" max="10" step="0.25" value="3.5" oninput="update()">
+        </div>
+      </div>
+
+      <div class="field">
+        <label><span data-ru="Инфляция / год" data-en="Inflation / yr">Инфляция / год</span><span class="val" id="lbl-infl" style="color:var(--danger)"></span></label>
+        <div class="track-wrap" id="wrap-infl">
+          <div class="track-bg"></div>
+          <div class="track-fill" id="tf-infl" style="background:var(--danger)"></div>
+          <div class="thumb-overlay" id="th-infl" style="background:var(--danger); box-shadow:0 0 0 4px rgba(239,68,68,.25)"></div>
+          <input type="range" id="r-infl" min="0" max="20" step="0.5" value="5" oninput="update()">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- POWER NUMBER -->
+  <div class="power-number" id="power-num">$0</div>
+  <div class="power-label" id="power-label">капитал через 20 лет</div>
+
+  <!-- STAT CARDS -->
+  <div class="grid-4 mb-24">
+    <div class="stat">
+      <span class="stat-label" data-ru="Вложено всего" data-en="Total Invested">Вложено всего</span>
+      <span class="stat-val c-muted" id="s-invested">$0</span>
+    </div>
+    <div class="stat">
+      <span class="stat-label" data-ru="Прибыль от роста" data-en="Growth Profit">Прибыль от роста</span>
+      <span class="stat-val c-green" id="s-profit">$0</span>
+      <span class="stat-sub" id="s-profit-sub"></span>
+    </div>
+    <div class="stat">
+      <span class="stat-label" data-ru="Дивиденды / мес" data-en="Dividends / mo">Дивиденды / мес</span>
+      <span class="stat-val c-gold" id="s-div">$0</span>
+      <span class="stat-sub" id="s-div-sub"></span>
+    </div>
+    <div class="stat">
+      <span class="stat-label" data-ru="Реальная стоимость" data-en="Real Value">Реальная стоимость</span>
+      <span class="stat-val c-muted" id="s-real">$0</span>
+      <span class="stat-sub" data-ru="с учётом инфляции" data-en="inflation-adjusted">с учётом инфляции</span>
+    </div>
+  </div>
+
+  <!-- CHART -->
+  <div class="chart-wrap mb-24">
+    <div class="chart-header">
+      <div class="card-title" style="margin-bottom:0" data-ru="Рост капитала по годам" data-en="Capital Growth by Year">Рост капитала по годам</div>
+      <div class="chart-legend">
+        <div class="legend-item"><div class="legend-dot" style="background:var(--accent)"></div><span data-ru="Портфель" data-en="Portfolio">Портфель</span></div>
+        <div class="legend-item"><div class="legend-dot" style="background:#334155"></div><span data-ru="Только взносы" data-en="Contributions only">Только взносы</span></div>
+        <div class="legend-item"><div class="legend-dot" style="background:var(--danger);opacity:.7"></div><span data-ru="Реально (с инфляцией)" data-en="Real (inflation-adj.)">Реально</span></div>
+      </div>
+    </div>
+    <svg class="chart" id="main-chart" viewBox="0 0 800 260"></svg>
+  </div>
+
+  <!-- INSIGHTS -->
+  <div class="grid-2 mb-24">
+    <div class="card">
+      <div class="card-title" data-ru="Результаты инвестирования" data-en="Investment Results">Результаты инвестирования</div>
+      <div id="comparison-insights"></div>
+    </div>
+    <div class="card">
+      <div class="card-title" data-ru="Сила сложного процента" data-en="Compound Effect">Сила сложного процента</div>
+      <div id="compound-insights"></div>
+    </div>
+  </div>
+
+  <!-- TABLE -->
+  <div class="chart-wrap">
+    <div class="card-title" data-ru="Детализация по годам" data-en="Year-by-Year Breakdown">Детализация по годам</div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th data-ru="Год" data-en="Year">Год</th>
+            <th data-ru="Капитал" data-en="Capital">Капитал</th>
+            <th data-ru="Вложено" data-en="Invested">Вложено</th>
+            <th data-ru="Прибыль" data-en="Profit">Прибыль</th>
+            <th data-ru="Дивид/мес" data-en="Div/mo">Дивид/мес</th>
+            <th data-ru="Реально" data-en="Real">Реально</th>
+          </tr>
+        </thead>
+        <tbody id="table-body"></tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+<footer>
+  <p data-ru="Калькулятор носит образовательный характер. Прошлая доходность не гарантирует будущих результатов." data-en="For educational purposes only. Past performance does not guarantee future results.">Калькулятор носит образовательный характер. Прошлая доходность не гарантирует будущих результатов.</p>
+</footer>
+
+<script>
+let lang = 'ru';
+let dark = true;
+
+/* ── THEME ── */
+function toggleTheme() {
+  dark = !dark;
+  document.body.classList.toggle('light', !dark);
+  document.getElementById('theme-btn').textContent = dark ? '🌙' : '☀️';
+  drawChart(lastRows);
+}
+
+/* ── LANG ── */
+function setLang(l) {
+  lang = l;
+  document.getElementById('btn-ru').classList.toggle('active', l === 'ru');
+  document.getElementById('btn-en').classList.toggle('active', l === 'en');
+  document.querySelectorAll('[data-ru]').forEach(el => {
+    if (el.tagName === 'INPUT' || el.tagName === 'SELECT') return;
+    const v = el.getAttribute('data-' + l);
+    if (v) el.textContent = v;
+  });
+  update();
+}
+
+/* ── FORMAT ── */
+function fmt(n, cur) {
+  cur = cur || document.getElementById('currency').value || '$';
+  if (Math.abs(n) >= 1e9) return cur + (n/1e9).toFixed(2) + (lang==='ru'?' млрд':' B');
+  if (Math.abs(n) >= 1e6) return cur + (n/1e6).toFixed(2) + (lang==='ru'?' млн':' M');
+  if (Math.abs(n) >= 1e3) return cur + Math.round(n/1000) + (lang==='ru'?' тыс':' K');
+  return cur + Math.round(n).toLocaleString();
+}
+
+/* ── SLIDER FILL + THUMB ──
+   pct = fraction 0..1 of the slider.
+   We account for the browser's thumb inset: on a track of width W px,
+   the thumb centre travels from thumbR to W-thumbR.
+   This makes the coloured fill and overlay thumb pixel-perfect.
+*/
+const THUMB_R = 9; // half of 18px thumb
+
+function updateSlider(rangeId, fillId, thumbId, min, max, color) {
+  const inp  = document.getElementById(rangeId);
+  const fill = document.getElementById(fillId);
+  const thumb = document.getElementById(thumbId);
+  const wrap = inp.parentElement;
+
+  const frac = (inp.value - min) / (max - min);
+  const wrapW = wrap.offsetWidth || 200;
+  const travelW = wrapW - THUMB_R * 2;
+  const thumbLeft = THUMB_R + frac * travelW;   // px from left edge of wrap
+  const fillPct   = (thumbLeft / wrapW) * 100;  // % for fill width
+
+  fill.style.width = fillPct + '%';
+  fill.style.background = color;
+  thumb.style.left = fillPct + '%';
+  thumb.style.background = color;
+}
+
+/* ── CALC ── */
+let lastRows = [];
+
+function calcPortfolio(initial, monthly, years, returnRate, divYield, inflRate) {
+  const rows = [];
+  let capital = initial;
+  for (let y = 0; y <= years; y++) {
+    const invested = initial + monthly * 12 * y;
+    const profit   = capital - invested;
+    const divMonth = capital * (divYield / 100) / 12;
+    const real     = capital / Math.pow(1 + inflRate / 100, y);
+    rows.push({ year:y, capital:Math.round(capital), invested:Math.round(invested),
+                profit:Math.round(profit), divMonth:Math.round(divMonth), real:Math.round(real) });
+    capital = capital * (1 + returnRate / 100) + monthly * 12;
+  }
+  return rows;
+}
+
+/* ── CHART ── */
+function getCSSVar(name) {
+  return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+}
+
+function drawChart(rows) {
+  if (!rows || !rows.length) return;
+  const svg = document.getElementById('main-chart');
+  const W = 800, H = 260, PT = 14, PB = 30;
+  const n = rows.length;
+  const maxVal = Math.max(...rows.map(r => r.capital));
+  const xf = i => (i / (n - 1)) * W;
+  const yf = v => H - PB - (v / maxVal) * (H - PT - PB);
+
+  const accentColor  = dark ? '#10B981' : '#059669';
+  const investColor  = dark ? '#334155' : '#94A3B8';
+  const realColor    = dark ? '#EF4444' : '#DC2626';
+  const gridColor    = dark ? '#1F2D45' : '#CBD5E1';
+  const lblColor     = dark ? '#64748B' : '#94A3B8';
+
+  const line = (pts, stroke, sw, dash='') =>
+    `<polyline points="${pts}" fill="none" stroke="${stroke}" stroke-width="${sw}" stroke-linejoin="round" stroke-linecap="round" ${dash?`stroke-dasharray="${dash}"`:''} />`;
+  const area = (pts, fill) =>
+    `<polygon points="${pts} ${xf(n-1)},${H-PB} 0,${H-PB}" fill="${fill}" opacity="0.13"/>`;
+
+  const p1 = rows.map((r,i) => `${xf(i)},${yf(r.capital)}`).join(' ');
+  const p2 = rows.map((r,i) => `${xf(i)},${yf(r.invested)}`).join(' ');
+  const p3 = rows.map((r,i) => `${xf(i)},${yf(r.real)}`).join(' ');
+
+  let grid='', xlbl='';
+  for (let g=0;g<=4;g++){
+    const yg = PT + (g/4)*(H-PT-PB);
+    const v  = maxVal*(1-g/4);
+    const l  = v>=1e6?(v/1e6).toFixed(1)+'M':v>=1e3?Math.round(v/1000)+'K':Math.round(v);
+    grid += `<line x1="0" y1="${yg}" x2="${W}" y2="${yg}" stroke="${gridColor}" stroke-width="1"/>`;
+    grid += `<text x="4" y="${yg-4}" fill="${lblColor}" font-size="10" font-family="JetBrains Mono,monospace">${l}</text>`;
+  }
+  const step = Math.max(1,Math.floor(n/8));
+  for (let i=0;i<n;i+=step){
+    xlbl += `<text x="${xf(i)}" y="${H-4}" fill="${lblColor}" font-size="10" font-family="JetBrains Mono,monospace" text-anchor="middle">${rows[i].year>0?'+'+rows[i].year:(lang==='ru'?'Сейчас':'Now')}</text>`;
+  }
+
+  svg.innerHTML = grid + xlbl +
+    area(p1, accentColor) +
+    line(p2, investColor, 1.5, '5 3') +
+    line(p3, realColor, 1.5, '3 3') +
+    line(p1, accentColor, 2.5);
+}
+
+/* ── UPDATE ── */
+function update() {
+  const initial = +document.getElementById('r-initial').value;
+  const monthly = +document.getElementById('r-monthly').value;
+  const years   = +document.getElementById('r-years').value;
+  const ret     = +document.getElementById('r-return').value;
+  const divY    = +document.getElementById('r-div').value;
+  const infl    = +document.getElementById('r-infl').value;
+  const cur     = document.getElementById('currency').value;
+
+  // slider fills
+  const grn = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || '#10B981';
+  updateSlider('r-initial', 'tf-initial', 'th-initial', 0, 500000, grn);
+  updateSlider('r-monthly', 'tf-monthly', 'th-monthly', 0, 5000,   grn);
+  updateSlider('r-years',   'tf-years',   'th-years',   1, 40,     grn);
+  updateSlider('r-return',  'tf-return',  'th-return',  0, 20,     grn);
+  updateSlider('r-div',     'tf-div',     'th-div',     0, 10,     '#F59E0B');
+  updateSlider('r-infl',    'tf-infl',    'th-infl',    0, 20,     '#EF4444');
+
+  // labels
+  const fK = v => v>=1e6?cur+(v/1e6).toFixed(1)+(lang==='ru'?' млн':' M'):v>=1e3?cur+Math.round(v/1000)+(lang==='ru'?' тыс':' K'):cur+v.toLocaleString();
+  document.getElementById('lbl-initial').textContent = fK(initial);
+  document.getElementById('lbl-monthly').textContent = fK(monthly);
+  document.getElementById('lbl-years').textContent   = years + (lang==='ru'?' лет':' yrs');
+  document.getElementById('lbl-return').textContent  = ret + '%';
+  document.getElementById('lbl-div').textContent     = divY + '%';
+  document.getElementById('lbl-infl').textContent    = infl + '%';
+
+  const rows = calcPortfolio(initial, monthly, years, ret, divY, infl);
+  lastRows = rows;
+  const last = rows[rows.length - 1];
+
+  // power number
+  document.getElementById('power-num').textContent = fmt(last.capital, cur);
+  document.getElementById('power-label').textContent = lang==='ru'
+    ? `капитал через ${years} лет`
+    : `capital in ${years} years`;
+
+  // stats
+  document.getElementById('s-invested').textContent = fmt(last.invested, cur);
+  document.getElementById('s-profit').textContent   = fmt(last.profit, cur);
+  document.getElementById('s-profit-sub').textContent = last.invested>0 ? '+' + Math.round(last.profit/last.invested*100) + '%' : '';
+  document.getElementById('s-div').textContent      = fmt(last.divMonth, cur);
+  document.getElementById('s-div-sub').textContent  = fmt(last.divMonth*12, cur) + (lang==='ru'?' / год':' / yr');
+  document.getElementById('s-real').textContent     = fmt(last.real, cur);
+
+  drawChart(rows);
+
+  // insights: results
+  const mult = last.invested > 0 ? (last.capital / last.invested).toFixed(1) : '—';
+  document.getElementById('comparison-insights').innerHTML = `
+    <div class="insight green">
+      ${lang==='ru'
+        ? `Вложено: <strong>${fmt(last.invested,cur)}</strong>. Итоговый капитал: <strong>${fmt(last.capital,cur)}</strong> — это в <strong>${mult}×</strong> больше вложенного.`
+        : `Invested: <strong>${fmt(last.invested,cur)}</strong>. Final capital: <strong>${fmt(last.capital,cur)}</strong> — <strong>${mult}×</strong> your money.`}
+    </div>
+    <div class="insight gold">
+      ${lang==='ru'
+        ? `Дивидендный доход к году ${years}: <strong>${fmt(last.divMonth,cur)}/мес</strong> или <strong>${fmt(last.divMonth*12,cur)}/год</strong>.`
+        : `Dividend income by year ${years}: <strong>${fmt(last.divMonth,cur)}/mo</strong> or <strong>${fmt(last.divMonth*12,cur)}/yr</strong>.`}
+    </div>
+    <div class="insight ${infl>0?'red':'green'}">
+      ${lang==='ru'
+        ? `Реальная покупательная способность с учётом инфляции ${infl}%/год: <strong>${fmt(last.real,cur)}</strong> в сегодняшних деньгах.`
+        : `Real purchasing power (${infl}%/yr inflation): <strong>${fmt(last.real,cur)}</strong> in today's money.`}
+    </div>`;
+
+  // insights: compound
+  const mid = rows[Math.floor(rows.length/2)];
+  const extra = Math.max(0, last.profit - mid.profit * 2);
+  const half = Math.floor(years/2);
+  document.getElementById('compound-insights').innerHTML = `
+    <div class="insight blue">
+      ${lang==='ru'
+        ? `За первые <strong>${half} лет</strong> накоплено ${fmt(mid.capital,cur)}. Вторая половина срока добавляет ещё <strong>${fmt(last.capital-mid.capital,cur)}</strong> — почти вдвое больше.`
+        : `After the first <strong>${half} years</strong>: ${fmt(mid.capital,cur)}. The second half adds <strong>${fmt(last.capital-mid.capital,cur)}</strong> — almost double.`}
+    </div>
+    <div class="insight green">
+      ${lang==='ru'
+        ? `Дополнительная прибыль от реинвестирования (сложный процент): <strong>${fmt(extra,cur)}</strong> — деньги, заработанные уже на ранее заработанных деньгах.`
+        : `Extra profit from compounding: <strong>${fmt(extra,cur)}</strong> — money earned on previously earned money.`}
+    </div>`;
+
+  // table
+  const step = Math.max(1, Math.floor(rows.length/15));
+  let html = '';
+  rows.forEach((r,i) => {
+    if (i%step!==0 && i!==rows.length-1) return;
+    const last_ = i===rows.length-1;
+    html += `<tr class="${last_?'goal-row':''}">
+      <td>${r.year===0?(lang==='ru'?'Сейчас':'Now'):'+'+r.year}</td>
+      <td class="hl">${fmt(r.capital,cur)}</td>
+      <td>${fmt(r.invested,cur)}</td>
+      <td style="color:var(--accent2)">${fmt(r.profit,cur)}</td>
+      <td style="color:var(--gold)">${fmt(r.divMonth,cur)}</td>
+      <td style="color:var(--danger);opacity:.8">${fmt(r.real,cur)}</td>
+    </tr>`;
+  });
+  document.getElementById('table-body').innerHTML = html;
+}
+
+// re-run sliders on resize (thumb position depends on wrapper width)
+window.addEventListener('resize', () => update());
+
+// init
+update();
+</script>
+</body>
+</html>
