@@ -6,289 +6,182 @@
 <title>Калькулятор инвестора / Investment Calculator</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap');
-
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-  /* ── DARK THEME (default) ── */
   :root {
-    --bg:       #0A0E1A;
-    --surface:  #111827;
-    --surface2: #1A2235;
-    --border:   #1F2D45;
-    --accent:   #10B981;
-    --accent2:  #10B981;
-    --gold:     #F59E0B;
-    --danger:   #EF4444;
-    --text:     #F1F5F9;
-    --muted:    #64748B;
-    --hero-grad: rgba(16,185,129,0.10);
-    --grid-line: #1F2D45;
-    --grid-lbl:  #64748B;
-    --chart-invested: #334155;
+    --bg:#0A0E1A; --surface:#111827; --surface2:#1A2235; --border:#1F2D45;
+    --accent:#10B981; --accent2:#10B981; --gold:#F59E0B; --danger:#EF4444;
+    --text:#F1F5F9; --muted:#64748B; --hero-grad:rgba(16,185,129,0.10);
   }
-
-  /* ── LIGHT THEME ── */
   body.light {
-    --bg:       #F0F4F8;
-    --surface:  #FFFFFF;
-    --surface2: #E8EFF7;
-    --border:   #CBD5E1;
-    --accent:   #059669;
-    --accent2:  #059669;
-    --gold:     #D97706;
-    --danger:   #DC2626;
-    --text:     #0F172A;
-    --muted:    #64748B;
-    --hero-grad: rgba(16,185,129,0.07);
-    --grid-line: #CBD5E1;
-    --grid-lbl:  #94A3B8;
-    --chart-invested: #94A3B8;
+    --bg:#F0F4F8; --surface:#FFFFFF; --surface2:#E8EFF7; --border:#CBD5E1;
+    --accent:#059669; --accent2:#059669; --gold:#D97706; --danger:#DC2626;
+    --text:#0F172A; --muted:#64748B; --hero-grad:rgba(16,185,129,0.07);
   }
 
-  body {
-    font-family: 'Inter', sans-serif;
-    background: var(--bg);
-    color: var(--text);
-    min-height: 100vh;
-    line-height: 1.5;
-    transition: background .25s, color .25s;
+  body { font-family:'Inter',sans-serif; background:var(--bg); color:var(--text); min-height:100vh; line-height:1.5; transition:background .25s,color .25s; }
+
+  /* TOP BAR */
+  .top-bar { position:fixed; top:0; right:0; left:0; z-index:200; display:flex; justify-content:flex-end; align-items:center; padding:10px 20px; gap:6px; background:rgba(10,14,26,0.88); backdrop-filter:blur(12px); border-bottom:1px solid var(--border); transition:background .25s; }
+  body.light .top-bar { background:rgba(240,244,248,0.92); }
+  .top-btn { font-family:'JetBrains Mono',monospace; font-size:11px; font-weight:600; letter-spacing:1px; text-transform:uppercase; padding:5px 12px; border-radius:6px; cursor:pointer; border:1px solid var(--border); background:transparent; color:var(--muted); transition:all .2s; }
+  .top-btn.active { background:var(--accent); border-color:var(--accent); color:#fff; }
+  .theme-btn { width:32px; height:32px; border-radius:8px; border:1px solid var(--border); background:transparent; cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:16px; transition:all .2s; margin-right:6px; }
+  .theme-btn:hover { background:var(--surface2); }
+
+  /* HERO */
+  .hero { padding:110px 24px 56px; text-align:center; background:radial-gradient(ellipse 80% 60% at 50% 0%, var(--hero-grad) 0%, transparent 70%); }
+  .hero-eyebrow { font-family:'JetBrains Mono',monospace; font-size:11px; letter-spacing:3px; text-transform:uppercase; color:var(--accent); margin-bottom:20px; }
+  .hero h1 { font-size:clamp(30px,6vw,60px); font-weight:800; line-height:1.05; letter-spacing:-2px; background:linear-gradient(135deg,var(--text) 0%,var(--muted) 100%); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; margin-bottom:18px; }
+  .hero p { font-size:clamp(14px,2vw,17px); color:var(--muted); max-width:520px; margin:0 auto; }
+
+  /* LAYOUT */
+  .main { max-width:1100px; margin:0 auto; padding:0 16px 80px; }
+  .grid-2 { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+  @media(max-width:700px){ .grid-2 { grid-template-columns:1fr; } }
+  .grid-4 { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; }
+  @media(max-width:900px){ .grid-4 { grid-template-columns:repeat(2,1fr); } }
+  @media(max-width:480px){ .grid-4 { grid-template-columns:1fr 1fr; } }
+  .mb-24 { margin-bottom:24px; }
+
+  /* CARD */
+  .card { background:var(--surface); border:1px solid var(--border); border-radius:16px; padding:24px; transition:background .25s,border-color .25s; }
+  .card-title { font-family:'JetBrains Mono',monospace; font-size:10px; letter-spacing:2.5px; text-transform:uppercase; color:var(--muted); margin-bottom:20px; }
+
+  /* FIELD LABEL ROW */
+  .field { margin-bottom:22px; }
+  .field-label-row { display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; gap:6px; }
+  .field-label-left { display:flex; align-items:center; gap:6px; font-size:13px; color:var(--muted); }
+  .field-val { font-family:'JetBrains Mono',monospace; font-size:16px; font-weight:600; color:var(--text); white-space:nowrap; }
+
+  /* TOOLTIP BUTTON */
+  .tip-btn {
+    width:18px; height:18px; border-radius:50%;
+    border:1px solid var(--border);
+    background:var(--surface2); color:var(--muted);
+    font-size:10px; font-weight:700; font-family:'JetBrains Mono',monospace;
+    cursor:pointer; display:inline-flex; align-items:center; justify-content:center;
+    flex-shrink:0; transition:all .15s; line-height:1; padding:0;
+    position:relative;
+  }
+  .tip-btn:hover { background:var(--accent); border-color:var(--accent); color:#fff; }
+
+  /* TOOLTIP POPUP */
+  .tip-popup {
+    display:none;
+    position:fixed;
+    z-index:1000;
+    width:min(320px, calc(100vw - 32px));
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:14px;
+    padding:16px 18px;
+    box-shadow:0 16px 48px rgba(0,0,0,.45);
+    font-size:13px; line-height:1.65; color:var(--text);
+    pointer-events:auto;
+  }
+  body.light .tip-popup { box-shadow:0 8px 32px rgba(0,0,0,.15); }
+  .tip-popup.visible { display:block; }
+  .tip-popup-title { font-family:'JetBrains Mono',monospace; font-size:10px; letter-spacing:2px; text-transform:uppercase; color:var(--accent); margin-bottom:10px; }
+  .tip-popup p { color:var(--muted); margin-bottom:8px; }
+  .tip-popup p:last-child { margin-bottom:0; }
+  .tip-popup strong { color:var(--text); }
+  .tip-popup .example { background:var(--surface2); border-left:3px solid var(--accent); border-radius:0 8px 8px 0; padding:10px 12px; margin-top:10px; font-size:12px; color:var(--muted); }
+  .tip-popup .example strong { color:var(--accent); }
+  .tip-close { position:absolute; top:12px; right:14px; background:none; border:none; color:var(--muted); cursor:pointer; font-size:16px; line-height:1; padding:2px; }
+  .tip-close:hover { color:var(--text); }
+
+  /* SLIDERS */
+  .track-wrap { position:relative; height:20px; }
+  .track-bg { position:absolute; left:0; right:0; top:8px; height:4px; border-radius:2px; background:var(--surface2); pointer-events:none; }
+  .track-fill { position:absolute; left:0; top:8px; height:4px; border-radius:2px; pointer-events:none; z-index:1; transition:width .08s linear; }
+  .track-wrap input[type=range] { position:absolute; inset:0; width:100%; height:100%; opacity:0; cursor:pointer; z-index:2; margin:0; }
+  .thumb-overlay { position:absolute; top:50%; transform:translate(-50%,-50%); width:18px; height:18px; border-radius:50%; pointer-events:none; z-index:1; transition:left .08s linear; }
+
+  /* SELECT */
+  .currency-select { font-family:'JetBrains Mono',monospace; font-size:13px; background:var(--surface2); border:1px solid var(--border); color:var(--text); padding:8px 10px; border-radius:8px; outline:none; cursor:pointer; width:100%; transition:background .25s,border-color .25s; }
+
+  /* NUMBER INPUT */
+  .num-input-wrap { display:flex; align-items:center; gap:6px; margin-top:8px; }
+  .num-input {
+    font-family:'JetBrains Mono',monospace; font-size:13px;
+    background:var(--surface2); border:1px solid var(--border);
+    color:var(--text); padding:6px 10px; border-radius:8px;
+    width:100%; outline:none; transition:border-color .2s, background .25s;
+    -moz-appearance:textfield;
+  }
+  .num-input::-webkit-outer-spin-button,
+  .num-input::-webkit-inner-spin-button { -webkit-appearance:none; margin:0; }
+  .num-input:focus { border-color:var(--accent); }
+  .num-input.invalid { border-color:var(--danger); }
+  .num-unit {
+    font-family:'JetBrains Mono',monospace; font-size:12px;
+    color:var(--muted); white-space:nowrap; flex-shrink:0;
   }
 
-  /* ── TOP BAR ── */
-  .top-bar {
-    position: fixed; top: 0; right: 0; left: 0; z-index: 100;
-    display: flex; justify-content: flex-end; align-items: center;
-    padding: 10px 20px; gap: 6px;
-    background: rgba(10,14,26,0.88);
-    backdrop-filter: blur(12px);
-    border-bottom: 1px solid var(--border);
-    transition: background .25s;
-  }
-  body.light .top-bar { background: rgba(240,244,248,0.92); }
+  /* STAT CARDS */
+  .stat { background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:16px 18px; display:flex; flex-direction:column; gap:4px; transition:background .25s; }
+  .stat-header { display:flex; align-items:center; gap:6px; }
+  .stat-label { font-family:'JetBrains Mono',monospace; font-size:9px; letter-spacing:2px; text-transform:uppercase; color:var(--muted); }
+  .stat-val { font-family:'JetBrains Mono',monospace; font-size:clamp(18px,3vw,24px); font-weight:700; line-height:1; }
+  .stat-sub { font-size:11px; color:var(--muted); margin-top:2px; }
+  .c-green { color:var(--accent2); } .c-gold { color:var(--gold); } .c-muted { color:var(--muted); }
 
-  .top-btn {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 11px; font-weight: 600;
-    letter-spacing: 1px; text-transform: uppercase;
-    padding: 5px 12px; border-radius: 6px; cursor: pointer;
-    border: 1px solid var(--border);
-    background: transparent; color: var(--muted);
-    transition: all .2s;
-  }
-  .top-btn.active {
-    background: var(--accent); border-color: var(--accent); color: #fff;
-  }
+  /* CHART */
+  .chart-wrap { background:var(--surface); border:1px solid var(--border); border-radius:16px; padding:24px; margin-bottom:16px; transition:background .25s; }
+  .chart-header { display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; margin-bottom:20px; }
+  .chart-header-left { display:flex; align-items:center; gap:8px; }
+  .chart-legend { display:flex; gap:16px; flex-wrap:wrap; }
+  .legend-item { display:flex; align-items:center; gap:6px; font-size:12px; color:var(--muted); }
+  .legend-dot { width:8px; height:8px; border-radius:50%; flex-shrink:0; }
+  svg.chart { width:100%; overflow:visible; display:block; }
 
-  /* theme toggle icon button */
-  .theme-btn {
-    width: 32px; height: 32px; border-radius: 8px;
-    border: 1px solid var(--border);
-    background: transparent; cursor: pointer;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 16px; transition: all .2s; margin-right: 6px;
-  }
-  .theme-btn:hover { background: var(--surface2); }
+  /* INSIGHT */
+  .insight { border-radius:12px; padding:14px 18px; font-size:13px; line-height:1.65; border-left:3px solid; margin-bottom:10px; }
+  .insight.green { background:rgba(16,185,129,.08); border-color:var(--accent2); color:#6EE7B7; }
+  .insight.blue  { background:rgba(99,102,241,.08); border-color:#818CF8; color:#A5B4FC; }
+  .insight.gold  { background:rgba(245,158,11,.08); border-color:var(--gold); color:#FCD34D; }
+  .insight.red   { background:rgba(239,68,68,.08); border-color:var(--danger); color:#FCA5A5; }
+  body.light .insight.green { color:#065F46; } body.light .insight.blue { color:#3730A3; }
+  body.light .insight.gold  { color:#92400E; } body.light .insight.red  { color:#991B1B; }
 
-  /* ── HERO ── */
-  .hero {
-    padding: 110px 24px 56px;
-    text-align: center;
-    background: radial-gradient(ellipse 80% 60% at 50% 0%, var(--hero-grad) 0%, transparent 70%);
-  }
-  .hero-eyebrow {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 11px; letter-spacing: 3px;
-    text-transform: uppercase; color: var(--accent); margin-bottom: 20px;
-  }
-  .hero h1 {
-    font-size: clamp(30px, 6vw, 60px); font-weight: 800;
-    line-height: 1.05; letter-spacing: -2px;
-    background: linear-gradient(135deg, var(--text) 0%, var(--muted) 100%);
-    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-    background-clip: text;
-    margin-bottom: 18px;
-  }
-  .hero p { font-size: clamp(14px, 2vw, 17px); color: var(--muted); max-width: 520px; margin: 0 auto; }
+  /* SECTION TITLE WITH TIP */
+  .section-header { display:flex; align-items:center; gap:8px; margin-bottom:20px; }
+  .section-header .card-title { margin-bottom:0; }
 
-  /* ── LAYOUT ── */
-  .main { max-width: 1100px; margin: 0 auto; padding: 0 16px 80px; }
-  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-  @media(max-width:700px){ .grid-2 { grid-template-columns: 1fr; } }
-  .grid-4 { display: grid; grid-template-columns: repeat(4,1fr); gap: 12px; }
-  @media(max-width:900px){ .grid-4 { grid-template-columns: repeat(2,1fr); } }
-  @media(max-width:480px){ .grid-4 { grid-template-columns: 1fr 1fr; } }
-  .mb-24 { margin-bottom: 24px; }
+  /* TABLE */
+  .table-wrap { overflow-x:auto; }
+  table { width:100%; border-collapse:collapse; font-size:13px; }
+  thead th { font-family:'JetBrains Mono',monospace; font-size:9px; letter-spacing:2px; text-transform:uppercase; color:var(--muted); padding:0 12px 12px; text-align:right; white-space:nowrap; }
+  thead th:first-child { text-align:left; }
+  thead th .th-inner { display:inline-flex; align-items:center; gap:5px; }
+  tbody tr { border-top:1px solid var(--border); }
+  tbody tr:hover { background:var(--surface2); }
+  tbody td { padding:10px 12px; font-family:'JetBrains Mono',monospace; font-size:12px; text-align:right; color:var(--muted); white-space:nowrap; }
+  tbody td:first-child { text-align:left; color:var(--text); }
+  tbody td.hl { color:var(--accent2); font-weight:600; }
+  tbody tr.goal-row td { color:var(--accent2); }
 
-  /* ── CARD ── */
-  .card {
-    background: var(--surface); border: 1px solid var(--border);
-    border-radius: 16px; padding: 24px;
-    transition: background .25s, border-color .25s;
-  }
-  .card-title {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 10px; letter-spacing: 2.5px;
-    text-transform: uppercase; color: var(--muted); margin-bottom: 20px;
-  }
+  /* POWER NUMBER */
+  .power-number { font-family:'JetBrains Mono',monospace; font-size:clamp(44px,10vw,88px); font-weight:800; letter-spacing:-3px; line-height:1; background:linear-gradient(135deg,var(--accent2) 0%,#3B82F6 100%); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; text-align:center; padding:28px 0 6px; }
+  .power-label { text-align:center; color:var(--muted); font-size:14px; margin-bottom:28px; }
 
-  /* ── RANGE SLIDERS ──
-     Key fix: track-wrap is relative, height=20px to contain the thumb (18px).
-     The colored fill sits at top:8px (centred on the 4px track inside 20px wrapper).
-     The native input is stretched over the whole wrapper, opacity:0, z-index:2
-     so it captures all pointer events while the visible fill sits below it.
-  ── */
-  .field { margin-bottom: 22px; }
-  .field label {
-    display: flex; justify-content: space-between; align-items: baseline;
-    font-size: 13px; color: var(--muted); margin-bottom: 10px;
-  }
-  .field label .val {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 16px; font-weight: 600; color: var(--text);
-  }
-
-  .track-wrap {
-    position: relative;
-    height: 20px;          /* enough for 18px thumb + glow */
-  }
-
-  /* grey background track */
-  .track-bg {
-    position: absolute;
-    left: 0; right: 0;
-    top: 8px;              /* (20-4)/2 = 8 */
-    height: 4px;
-    border-radius: 2px;
-    background: var(--surface2);
-    pointer-events: none;
-  }
-
-  /* coloured fill — sits on top of track-bg, below the range input */
-  .track-fill {
-    position: absolute;
-    left: 0;
-    top: 8px;
-    height: 4px;
-    border-radius: 2px;
-    pointer-events: none;
-    z-index: 1;
-    transition: width .08s linear;
-  }
-
-  /* the actual range input — transparent, full size, on top */
-  .track-wrap input[type=range] {
-    position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-    opacity: 0;
-    cursor: pointer;
-    z-index: 2;
-    margin: 0;
-  }
-
-  /* visible custom thumb rendered via a pseudo-overlay div */
-  .thumb-overlay {
-    position: absolute;
-    top: 50%;
-    transform: translate(-50%, -50%);
-    width: 18px; height: 18px;
-    border-radius: 50%;
-    pointer-events: none;
-    z-index: 1;            /* same layer as fill, below transparent input */
-    transition: left .08s linear;
-    box-shadow: 0 0 0 4px rgba(16,185,129,.25);
-  }
-
-  /* ── SELECT ── */
-  .currency-select {
-    font-family: 'JetBrains Mono', monospace; font-size: 13px;
-    background: var(--surface2); border: 1px solid var(--border);
-    color: var(--text); padding: 8px 10px; border-radius: 8px;
-    outline: none; cursor: pointer; width: 100%;
-    transition: background .25s, border-color .25s;
-  }
-
-  /* ── STAT CARDS ── */
-  .stat {
-    background: var(--surface); border: 1px solid var(--border);
-    border-radius: 12px; padding: 16px 18px;
-    display: flex; flex-direction: column; gap: 4px;
-    transition: background .25s;
-  }
-  .stat-label { font-family: 'JetBrains Mono', monospace; font-size: 9px; letter-spacing: 2px; text-transform: uppercase; color: var(--muted); }
-  .stat-val   { font-family: 'JetBrains Mono', monospace; font-size: clamp(18px,3vw,24px); font-weight: 700; line-height: 1; }
-  .stat-sub   { font-size: 11px; color: var(--muted); margin-top: 2px; }
-  .c-green { color: var(--accent2); }
-  .c-gold  { color: var(--gold); }
-  .c-muted { color: var(--muted); }
-
-  /* ── CHART ── */
-  .chart-wrap {
-    background: var(--surface); border: 1px solid var(--border);
-    border-radius: 16px; padding: 24px; margin-bottom: 16px;
-    transition: background .25s;
-  }
-  .chart-header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 20px; }
-  .chart-legend { display: flex; gap: 16px; flex-wrap: wrap; }
-  .legend-item  { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--muted); }
-  .legend-dot   { width: 8px; height: 8px; border-radius: 50%; flex-shrink:0; }
-  svg.chart { width: 100%; overflow: visible; display: block; }
-
-  /* ── TABLE ── */
-  .table-wrap { overflow-x: auto; }
-  table { width: 100%; border-collapse: collapse; font-size: 13px; }
-  thead th {
-    font-family: 'JetBrains Mono', monospace; font-size: 9px; letter-spacing: 2px;
-    text-transform: uppercase; color: var(--muted);
-    padding: 0 12px 12px; text-align: right; white-space: nowrap;
-  }
-  thead th:first-child { text-align: left; }
-  tbody tr { border-top: 1px solid var(--border); }
-  tbody tr:hover { background: var(--surface2); }
-  tbody td { padding: 10px 12px; font-family: 'JetBrains Mono', monospace; font-size: 12px; text-align: right; color: var(--muted); white-space: nowrap; }
-  tbody td:first-child { text-align: left; color: var(--text); }
-  tbody td.hl { color: var(--accent2); font-weight: 600; }
-  tbody tr.goal-row td { color: var(--accent2); }
-
-  /* ── INSIGHT ── */
-  .insight {
-    border-radius: 12px; padding: 14px 18px;
-    font-size: 13px; line-height: 1.65;
-    border-left: 3px solid; margin-bottom: 10px;
-  }
-  .insight.green { background: rgba(16,185,129,.08); border-color: var(--accent2); color: #6EE7B7; }
-  .insight.blue  { background: rgba(99,102,241,.08); border-color: #818CF8; color: #A5B4FC; }
-  .insight.gold  { background: rgba(245,158,11,.08); border-color: var(--gold);    color: #FCD34D; }
-  .insight.red   { background: rgba(239,68,68,.08);  border-color: var(--danger);  color: #FCA5A5; }
-  body.light .insight.green { color: #065F46; }
-  body.light .insight.blue  { color: #3730A3; }
-  body.light .insight.gold  { color: #92400E; }
-  body.light .insight.red   { color: #991B1B; }
-
-  /* ── POWER NUMBER ── */
-  .power-number {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: clamp(44px,10vw,88px); font-weight: 800;
-    letter-spacing: -3px; line-height: 1;
-    background: linear-gradient(135deg, var(--accent2) 0%, #3B82F6 100%);
-    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-    background-clip: text;
-    text-align: center; padding: 28px 0 6px;
-  }
-  .power-label { text-align: center; color: var(--muted); font-size: 14px; margin-bottom: 28px; }
-
-  /* ── FOOTER ── */
-  footer { text-align: center; padding: 36px 24px; font-size: 12px; color: var(--muted); border-top: 1px solid var(--border); }
-
-  @media(max-width:480px){ .card { padding: 16px; } .hero { padding: 96px 16px 44px; } }
+  footer { text-align:center; padding:36px 24px; font-size:12px; color:var(--muted); border-top:1px solid var(--border); }
+  @media(max-width:480px){ .card { padding:16px; } .hero { padding:96px 16px 44px; } }
 </style>
 </head>
 <body>
 
+<!-- TOOLTIP POPUP (single shared, moved via JS) -->
+<div class="tip-popup" id="tip-popup">
+  <button class="tip-close" onclick="closeTip()">✕</button>
+  <div class="tip-popup-title" id="tip-title"></div>
+  <div id="tip-body"></div>
+</div>
+
 <!-- TOP BAR -->
 <div class="top-bar">
-  <button class="theme-btn" id="theme-btn" onclick="toggleTheme()" title="Toggle theme">🌙</button>
+  <button class="theme-btn" id="theme-btn" onclick="toggleTheme()">🌙</button>
   <button class="top-btn active" onclick="setLang('ru')" id="btn-ru">RU</button>
   <button class="top-btn" onclick="setLang('en')" id="btn-en">EN</button>
 </div>
@@ -305,42 +198,77 @@
   <!-- INPUTS -->
   <div class="grid-2 mb-24">
 
-    <!-- Left -->
+    <!-- LEFT CARD -->
     <div class="card">
       <div class="card-title" data-ru="Параметры портфеля" data-en="Portfolio Parameters">Параметры портфеля</div>
 
       <div class="field">
-        <label><span data-ru="Начальный капитал" data-en="Starting Capital">Начальный капитал</span><span class="val" id="lbl-initial"></span></label>
-        <div class="track-wrap" id="wrap-initial">
+        <div class="field-label-row">
+          <div class="field-label-left">
+            <span data-ru="Начальный капитал" data-en="Starting Capital">Начальный капитал</span>
+            <button class="tip-btn" onclick="showTip(this,'initial')">?</button>
+          </div>
+          <span class="field-val" id="lbl-initial"></span>
+        </div>
+        <div class="track-wrap">
           <div class="track-bg"></div>
           <div class="track-fill" id="tf-initial"></div>
           <div class="thumb-overlay" id="th-initial"></div>
-          <input type="range" id="r-initial" min="0" max="500000" step="1000" value="10000" oninput="update()">
+          <input type="range" id="r-initial" min="0" max="500000" step="1000" value="10000" oninput="syncFromSlider('initial')">
+        </div>
+        <div class="num-input-wrap">
+          <input type="number" class="num-input" id="n-initial" min="0" max="500000" step="1000" value="10000" oninput="syncFromNumber('initial')" placeholder="10000">
+          <span class="num-unit" id="nu-initial">USD</span>
         </div>
       </div>
 
       <div class="field">
-        <label><span data-ru="Ежемесячный взнос" data-en="Monthly Contribution">Ежемесячный взнос</span><span class="val" id="lbl-monthly"></span></label>
-        <div class="track-wrap" id="wrap-monthly">
+        <div class="field-label-row">
+          <div class="field-label-left">
+            <span data-ru="Ежемесячный взнос" data-en="Monthly Contribution">Ежемесячный взнос</span>
+            <button class="tip-btn" onclick="showTip(this,'monthly')">?</button>
+          </div>
+          <span class="field-val" id="lbl-monthly"></span>
+        </div>
+        <div class="track-wrap">
           <div class="track-bg"></div>
           <div class="track-fill" id="tf-monthly"></div>
           <div class="thumb-overlay" id="th-monthly"></div>
-          <input type="range" id="r-monthly" min="0" max="5000" step="50" value="300" oninput="update()">
+          <input type="range" id="r-monthly" min="0" max="5000" step="50" value="300" oninput="syncFromSlider('monthly')">
+        </div>
+        <div class="num-input-wrap">
+          <input type="number" class="num-input" id="n-monthly" min="0" max="5000" step="50" value="300" oninput="syncFromNumber('monthly')" placeholder="300">
+          <span class="num-unit" id="nu-monthly">USD / <span data-ru="мес" data-en="mo">мес</span></span>
         </div>
       </div>
 
       <div class="field">
-        <label><span data-ru="Горизонт инвестирования" data-en="Investment Horizon">Горизонт</span><span class="val" id="lbl-years"></span></label>
-        <div class="track-wrap" id="wrap-years">
+        <div class="field-label-row">
+          <div class="field-label-left">
+            <span data-ru="Горизонт инвестирования" data-en="Investment Horizon">Горизонт</span>
+            <button class="tip-btn" onclick="showTip(this,'years')">?</button>
+          </div>
+          <span class="field-val" id="lbl-years"></span>
+        </div>
+        <div class="track-wrap">
           <div class="track-bg"></div>
           <div class="track-fill" id="tf-years"></div>
           <div class="thumb-overlay" id="th-years"></div>
-          <input type="range" id="r-years" min="1" max="40" step="1" value="20" oninput="update()">
+          <input type="range" id="r-years" min="1" max="40" step="1" value="20" oninput="syncFromSlider('years')">
+        </div>
+        <div class="num-input-wrap">
+          <input type="number" class="num-input" id="n-years" min="1" max="40" step="1" value="20" oninput="syncFromNumber('years')" placeholder="20">
+          <span class="num-unit" data-ru="лет" data-en="years">лет</span>
         </div>
       </div>
 
       <div class="field">
-        <label><span data-ru="Валюта отображения" data-en="Display Currency">Валюта</span></label>
+        <div class="field-label-row">
+          <div class="field-label-left">
+            <span data-ru="Валюта отображения" data-en="Display Currency">Валюта</span>
+            <button class="tip-btn" onclick="showTip(this,'currency')">?</button>
+          </div>
+        </div>
         <select class="currency-select" id="currency" onchange="update()">
           <option value="$">$ USD</option>
           <option value="₸">₸ KZT</option>
@@ -348,37 +276,67 @@
       </div>
     </div>
 
-    <!-- Right -->
+    <!-- RIGHT CARD -->
     <div class="card">
       <div class="card-title" data-ru="Сценарии доходности" data-en="Return Scenarios">Сценарии доходности</div>
 
       <div class="field">
-        <label><span data-ru="Рост портфеля / год" data-en="Portfolio Return / yr">Рост портфеля / год</span><span class="val" id="lbl-return" style="color:var(--accent2)"></span></label>
-        <div class="track-wrap" id="wrap-return">
+        <div class="field-label-row">
+          <div class="field-label-left">
+            <span data-ru="Рост портфеля / год" data-en="Portfolio Return / yr">Рост портфеля / год</span>
+            <button class="tip-btn" onclick="showTip(this,'return')">?</button>
+          </div>
+          <span class="field-val" id="lbl-return" style="color:var(--accent2)"></span>
+        </div>
+        <div class="track-wrap">
           <div class="track-bg"></div>
           <div class="track-fill" id="tf-return" style="background:var(--accent2)"></div>
-          <div class="thumb-overlay" id="th-return" style="background:var(--accent2); box-shadow:0 0 0 4px rgba(16,185,129,.25)"></div>
-          <input type="range" id="r-return" min="0" max="20" step="0.5" value="9" oninput="update()">
+          <div class="thumb-overlay" id="th-return" style="background:var(--accent2);box-shadow:0 0 0 4px rgba(16,185,129,.25)"></div>
+          <input type="range" id="r-return" min="0" max="20" step="0.5" value="9" oninput="syncFromSlider('return')">
+        </div>
+        <div class="num-input-wrap">
+          <input type="number" class="num-input" id="n-return" min="0" max="20" step="0.5" value="9" oninput="syncFromNumber('return')" placeholder="9">
+          <span class="num-unit">%</span>
         </div>
       </div>
 
       <div class="field">
-        <label><span data-ru="Дивидендная доходность" data-en="Dividend Yield">Дивидендная доходность</span><span class="val" id="lbl-div" style="color:var(--gold)"></span></label>
-        <div class="track-wrap" id="wrap-div">
+        <div class="field-label-row">
+          <div class="field-label-left">
+            <span data-ru="Дивидендная доходность" data-en="Dividend Yield">Дивидендная доходность</span>
+            <button class="tip-btn" onclick="showTip(this,'div')">?</button>
+          </div>
+          <span class="field-val" id="lbl-div" style="color:var(--gold)"></span>
+        </div>
+        <div class="track-wrap">
           <div class="track-bg"></div>
           <div class="track-fill" id="tf-div" style="background:var(--gold)"></div>
-          <div class="thumb-overlay" id="th-div" style="background:var(--gold); box-shadow:0 0 0 4px rgba(245,158,11,.25)"></div>
-          <input type="range" id="r-div" min="0" max="10" step="0.25" value="3.5" oninput="update()">
+          <div class="thumb-overlay" id="th-div" style="background:var(--gold);box-shadow:0 0 0 4px rgba(245,158,11,.25)"></div>
+          <input type="range" id="r-div" min="0" max="10" step="0.25" value="3.5" oninput="syncFromSlider('div')">
+        </div>
+        <div class="num-input-wrap">
+          <input type="number" class="num-input" id="n-div" min="0" max="10" step="0.25" value="3.5" oninput="syncFromNumber('div')" placeholder="3.5">
+          <span class="num-unit">%</span>
         </div>
       </div>
 
       <div class="field">
-        <label><span data-ru="Инфляция / год" data-en="Inflation / yr">Инфляция / год</span><span class="val" id="lbl-infl" style="color:var(--danger)"></span></label>
-        <div class="track-wrap" id="wrap-infl">
+        <div class="field-label-row">
+          <div class="field-label-left">
+            <span data-ru="Инфляция / год" data-en="Inflation / yr">Инфляция / год</span>
+            <button class="tip-btn" onclick="showTip(this,'infl')">?</button>
+          </div>
+          <span class="field-val" id="lbl-infl" style="color:var(--danger)"></span>
+        </div>
+        <div class="track-wrap">
           <div class="track-bg"></div>
           <div class="track-fill" id="tf-infl" style="background:var(--danger)"></div>
-          <div class="thumb-overlay" id="th-infl" style="background:var(--danger); box-shadow:0 0 0 4px rgba(239,68,68,.25)"></div>
-          <input type="range" id="r-infl" min="0" max="20" step="0.5" value="5" oninput="update()">
+          <div class="thumb-overlay" id="th-infl" style="background:var(--danger);box-shadow:0 0 0 4px rgba(239,68,68,.25)"></div>
+          <input type="range" id="r-infl" min="0" max="20" step="0.5" value="5" oninput="syncFromSlider('infl')">
+        </div>
+        <div class="num-input-wrap">
+          <input type="number" class="num-input" id="n-infl" min="0" max="20" step="0.5" value="5" oninput="syncFromNumber('infl')" placeholder="5">
+          <span class="num-unit">%</span>
         </div>
       </div>
     </div>
@@ -391,21 +349,33 @@
   <!-- STAT CARDS -->
   <div class="grid-4 mb-24">
     <div class="stat">
-      <span class="stat-label" data-ru="Вложено всего" data-en="Total Invested">Вложено всего</span>
+      <div class="stat-header">
+        <span class="stat-label" data-ru="Вложено всего" data-en="Total Invested">Вложено всего</span>
+        <button class="tip-btn" onclick="showTip(this,'s-invested')">?</button>
+      </div>
       <span class="stat-val c-muted" id="s-invested">$0</span>
     </div>
     <div class="stat">
-      <span class="stat-label" data-ru="Прибыль от роста" data-en="Growth Profit">Прибыль от роста</span>
+      <div class="stat-header">
+        <span class="stat-label" data-ru="Прибыль от роста" data-en="Growth Profit">Прибыль от роста</span>
+        <button class="tip-btn" onclick="showTip(this,'s-profit')">?</button>
+      </div>
       <span class="stat-val c-green" id="s-profit">$0</span>
       <span class="stat-sub" id="s-profit-sub"></span>
     </div>
     <div class="stat">
-      <span class="stat-label" data-ru="Дивиденды / мес" data-en="Dividends / mo">Дивиденды / мес</span>
+      <div class="stat-header">
+        <span class="stat-label" data-ru="Дивиденды / мес" data-en="Dividends / mo">Дивиденды / мес</span>
+        <button class="tip-btn" onclick="showTip(this,'s-div')">?</button>
+      </div>
       <span class="stat-val c-gold" id="s-div">$0</span>
       <span class="stat-sub" id="s-div-sub"></span>
     </div>
     <div class="stat">
-      <span class="stat-label" data-ru="Реальная стоимость" data-en="Real Value">Реальная стоимость</span>
+      <div class="stat-header">
+        <span class="stat-label" data-ru="Реальная стоимость" data-en="Real Value">Реальная стоимость</span>
+        <button class="tip-btn" onclick="showTip(this,'s-real')">?</button>
+      </div>
       <span class="stat-val c-muted" id="s-real">$0</span>
       <span class="stat-sub" data-ru="с учётом инфляции" data-en="inflation-adjusted">с учётом инфляции</span>
     </div>
@@ -414,7 +384,10 @@
   <!-- CHART -->
   <div class="chart-wrap mb-24">
     <div class="chart-header">
-      <div class="card-title" style="margin-bottom:0" data-ru="Рост капитала по годам" data-en="Capital Growth by Year">Рост капитала по годам</div>
+      <div class="chart-header-left">
+        <div class="card-title" style="margin-bottom:0" data-ru="Рост капитала по годам" data-en="Capital Growth by Year">Рост капитала по годам</div>
+        <button class="tip-btn" onclick="showTip(this,'chart')">?</button>
+      </div>
       <div class="chart-legend">
         <div class="legend-item"><div class="legend-dot" style="background:var(--accent)"></div><span data-ru="Портфель" data-en="Portfolio">Портфель</span></div>
         <div class="legend-item"><div class="legend-dot" style="background:#334155"></div><span data-ru="Только взносы" data-en="Contributions only">Только взносы</span></div>
@@ -427,28 +400,52 @@
   <!-- INSIGHTS -->
   <div class="grid-2 mb-24">
     <div class="card">
-      <div class="card-title" data-ru="Результаты инвестирования" data-en="Investment Results">Результаты инвестирования</div>
+      <div class="section-header">
+        <div class="card-title" data-ru="Результаты инвестирования" data-en="Investment Results">Результаты инвестирования</div>
+        <button class="tip-btn" onclick="showTip(this,'results')">?</button>
+      </div>
       <div id="comparison-insights"></div>
     </div>
     <div class="card">
-      <div class="card-title" data-ru="Сила сложного процента" data-en="Compound Effect">Сила сложного процента</div>
+      <div class="section-header">
+        <div class="card-title" data-ru="Сила сложного процента" data-en="Compound Effect">Сила сложного процента</div>
+        <button class="tip-btn" onclick="showTip(this,'compound')">?</button>
+      </div>
       <div id="compound-insights"></div>
     </div>
   </div>
 
   <!-- TABLE -->
   <div class="chart-wrap">
-    <div class="card-title" data-ru="Детализация по годам" data-en="Year-by-Year Breakdown">Детализация по годам</div>
+    <div class="section-header">
+      <div class="card-title" data-ru="Детализация по годам" data-en="Year-by-Year Breakdown">Детализация по годам</div>
+      <button class="tip-btn" onclick="showTip(this,'table')">?</button>
+    </div>
     <div class="table-wrap">
       <table>
         <thead>
           <tr>
-            <th data-ru="Год" data-en="Year">Год</th>
-            <th data-ru="Капитал" data-en="Capital">Капитал</th>
-            <th data-ru="Вложено" data-en="Invested">Вложено</th>
-            <th data-ru="Прибыль" data-en="Profit">Прибыль</th>
-            <th data-ru="Дивид/мес" data-en="Div/mo">Дивид/мес</th>
-            <th data-ru="Реально" data-en="Real">Реально</th>
+            <th><span class="th-inner" data-ru="Год" data-en="Year">Год</span></th>
+            <th><span class="th-inner">
+              <span data-ru="Капитал" data-en="Capital">Капитал</span>
+              <button class="tip-btn" onclick="showTip(this,'col-capital')">?</button>
+            </span></th>
+            <th><span class="th-inner">
+              <span data-ru="Вложено" data-en="Invested">Вложено</span>
+              <button class="tip-btn" onclick="showTip(this,'col-invested')">?</button>
+            </span></th>
+            <th><span class="th-inner">
+              <span data-ru="Прибыль" data-en="Profit">Прибыль</span>
+              <button class="tip-btn" onclick="showTip(this,'col-profit')">?</button>
+            </span></th>
+            <th><span class="th-inner">
+              <span data-ru="Дивид/мес" data-en="Div/mo">Дивид/мес</span>
+              <button class="tip-btn" onclick="showTip(this,'col-div')">?</button>
+            </span></th>
+            <th><span class="th-inner">
+              <span data-ru="Реально" data-en="Real">Реально</span>
+              <button class="tip-btn" onclick="showTip(this,'col-real')">?</button>
+            </span></th>
           </tr>
         </thead>
         <tbody id="table-body"></tbody>
@@ -466,6 +463,135 @@
 let lang = 'ru';
 let dark = true;
 
+/* ── TIPS DATA ── */
+const TIPS = {
+  initial: {
+    ru: { title: 'Начальный капитал', body: '<p>Сумма, с которой вы начинаете инвестировать прямо сейчас. Это могут быть уже накопленные сбережения или первый взнос.</p><div class="example">Пример: у вас есть <strong>$5 000</strong> на счёте — это и есть начальный капитал. Даже небольшая стартовая сумма значительно ускоряет рост благодаря сложному проценту.</div>' },
+    en: { title: 'Starting Capital', body: '<p>The amount you invest right now. This can be existing savings or your first deposit.</p><div class="example">Example: you have <strong>$5,000</strong> saved up — that\'s your starting capital. Even a small amount gives compound interest more time to work.</div>' }
+  },
+  monthly: {
+    ru: { title: 'Ежемесячный взнос (DCA)', body: '<p>Фиксированная сумма, которую вы инвестируете каждый месяц, независимо от ситуации на рынке. Эта стратегия называется <strong>усреднение стоимости (DCA)</strong>.</p><div class="example">Пример: вы откладываете <strong>$300 каждый месяц</strong>. За 20 лет это <strong>$72 000</strong> взносов, которые с учётом роста могут превратиться в <strong>$200 000+</strong>.</div>' },
+    en: { title: 'Monthly Contribution (DCA)', body: '<p>A fixed amount you invest every month regardless of market conditions. This strategy is called <strong>Dollar-Cost Averaging (DCA)</strong>.</p><div class="example">Example: you invest <strong>$300 every month</strong>. Over 20 years that\'s <strong>$72,000</strong> in contributions, which with growth can become <strong>$200,000+</strong>.</div>' }
+  },
+  years: {
+    ru: { title: 'Горизонт инвестирования', body: '<p>Количество лет, на которое вы планируете инвестировать. Это самый важный параметр — чем дольше, тем сильнее работает сложный процент.</p><div class="example">Пример: при одинаковых условиях за <strong>10 лет</strong> капитал вырастет в 2.4×, а за <strong>20 лет</strong> — уже в 5.6×. Вторые 10 лет дают больше, чем первые.</div>' },
+    en: { title: 'Investment Horizon', body: '<p>The number of years you plan to keep investing. This is the most important parameter — the longer, the more powerful compound interest becomes.</p><div class="example">Example: with the same conditions, capital grows <strong>2.4×</strong> in 10 years but <strong>5.6×</strong> in 20 years. The second decade adds more than the first.</div>' }
+  },
+  currency: {
+    ru: { title: 'Валюта отображения', body: '<p>Выберите валюту для отображения всех цифр в калькуляторе. Это только формат вывода — расчёты не конвертируются автоматически.</p><div class="example">Совет: если вы инвестируете в долларах — выберите USD. Если планируете считать доходность в тенге — выберите KZT и введите суммы в тенге.</div>' },
+    en: { title: 'Display Currency', body: '<p>Choose the currency for displaying all figures. This is just a display format — values are not automatically converted.</p><div class="example">Tip: if you invest in dollars, choose USD. If you think in tenge, choose KZT and enter amounts in tenge.</div>' }
+  },
+  return: {
+    ru: { title: 'Рост портфеля в год', body: '<p>Среднегодовая доходность вашего портфеля — то, насколько растёт капитал за год без учёта дивидендов.</p><p>Ориентиры:<br>• <strong>5–7%</strong> — консервативно (облигации + акции)<br>• <strong>9–10%</strong> — исторический средний S&P 500<br>• <strong>12–15%</strong> — оптимистично (tech-ETF)</p><div class="example">Пример: при <strong>9%/год</strong> капитал удваивается каждые <strong>~8 лет</strong> (правило 72: 72 ÷ 9 = 8).</div>' },
+    en: { title: 'Portfolio Return / Year', body: '<p>The average annual return of your portfolio — how much capital grows per year, excluding dividends.</p><p>Benchmarks:<br>• <strong>5–7%</strong> — conservative (bonds + stocks)<br>• <strong>9–10%</strong> — S&P 500 historical average<br>• <strong>12–15%</strong> — optimistic (tech ETFs)</p><div class="example">Example: at <strong>9%/yr</strong>, capital doubles every <strong>~8 years</strong> (rule of 72: 72 ÷ 9 = 8).</div>' }
+  },
+  div: {
+    ru: { title: 'Дивидендная доходность', body: '<p>Процент от стоимости портфеля, который вы получаете в виде дивидендов за год. Это пассивный доход, выплачиваемый компаниями из прибыли.</p><p>Ориентиры:<br>• <strong>1–2%</strong> — growth ETF (VOO, CSPX)<br>• <strong>3–4%</strong> — дивидендные ETF (VHYL, SCHD)<br>• <strong>4–6%</strong> — высокодивидендные фонды</p><div class="example">Пример: при портфеле <strong>$300 000</strong> и доходности <strong>4%</strong> вы получаете <strong>$12 000/год = $1 000/мес</strong> дивидендами.</div>' },
+    en: { title: 'Dividend Yield', body: '<p>The percentage of your portfolio\'s value paid out as dividends per year. This is passive income paid by companies from their profits.</p><p>Benchmarks:<br>• <strong>1–2%</strong> — growth ETFs (VOO, CSPX)<br>• <strong>3–4%</strong> — dividend ETFs (VHYL, SCHD)<br>• <strong>4–6%</strong> — high-yield funds</p><div class="example">Example: with a <strong>$300,000</strong> portfolio at <strong>4%</strong> yield, you receive <strong>$12,000/yr = $1,000/mo</strong> in dividends.</div>' }
+  },
+  infl: {
+    ru: { title: 'Инфляция', body: '<p>Ежегодное обесценивание денег. Из-за инфляции те же деньги через годы купят меньше товаров.</p><p>Ориентиры:<br>• <strong>2–3%</strong> — развитые страны (США, ЕС)<br>• <strong>7–10%</strong> — Казахстан, исторически<br>• <strong>5%</strong> — разумный средний ориентир</p><div class="example">Пример: $100 000 сегодня при инфляции 7%/год через 20 лет будут стоить как <strong>$25 800</strong> в сегодняшних деньгах. Именно поэтому важно инвестировать — чтобы обгонять инфляцию.</div>' },
+    en: { title: 'Inflation', body: '<p>The annual decrease in purchasing power of money. Due to inflation, the same amount buys less over time.</p><p>Benchmarks:<br>• <strong>2–3%</strong> — developed countries (US, EU)<br>• <strong>7–10%</strong> — Kazakhstan, historically<br>• <strong>5%</strong> — reasonable middle estimate</p><div class="example">Example: $100,000 today at 7%/yr inflation will have the buying power of just <strong>$25,800</strong> in 20 years. That\'s why investing matters — to outpace inflation.</div>' }
+  },
+  's-invested': {
+    ru: { title: 'Вложено всего', body: '<p>Общая сумма ваших реальных денег, внесённых за весь период: начальный капитал + все ежемесячные взносы.</p><div class="example">Пример: начальный капитал <strong>$10 000</strong> + взносы <strong>$300/мес × 12 мес × 20 лет = $72 000</strong>. Итого вложено: <strong>$82 000</strong>. Остальное — работа сложного процента.</div>' },
+    en: { title: 'Total Invested', body: '<p>The total amount of your real money deposited over the entire period: starting capital + all monthly contributions.</p><div class="example">Example: starting capital <strong>$10,000</strong> + contributions <strong>$300/mo × 12 × 20 yrs = $72,000</strong>. Total invested: <strong>$82,000</strong>. Everything beyond that is compound interest at work.</div>' }
+  },
+  's-profit': {
+    ru: { title: 'Прибыль от роста', body: '<p>Разница между итоговым капиталом и тем, сколько вы реально внесли. Это деньги, которые заработал рынок — без вашего участия.</p><div class="example">Пример: вложили <strong>$82 000</strong>, портфель вырос до <strong>$200 000</strong> — прибыль составила <strong>$118 000</strong> (+144%). Чем дольше горизонт, тем большую долю составляет именно прибыль, а не взносы.</div>' },
+    en: { title: 'Growth Profit', body: '<p>The difference between the final capital and what you actually deposited. This is money the market earned — without you lifting a finger.</p><div class="example">Example: you deposited <strong>$82,000</strong>, portfolio grew to <strong>$200,000</strong> — profit is <strong>$118,000</strong> (+144%). The longer the horizon, the larger the share of profit vs. contributions.</div>' }
+  },
+  's-div': {
+    ru: { title: 'Дивиденды в месяц', body: '<p>Ежемесячный пассивный доход от дивидендов к концу выбранного периода, если вы не продаёте активы. Рассчитывается как: <strong>Капитал × Дивидендная доходность ÷ 12</strong>.</p><div class="example">Пример: портфель <strong>$300 000</strong> × доходность <strong>4%</strong> ÷ 12 = <strong>$1 000/мес</strong>. Именно так строится пассивный доход — сначала накопить капитал, потом жить на дивиденды.</div>' },
+    en: { title: 'Monthly Dividends', body: '<p>Monthly passive income from dividends at the end of the period, if you don\'t sell assets. Calculated as: <strong>Capital × Dividend Yield ÷ 12</strong>.</p><div class="example">Example: portfolio <strong>$300,000</strong> × yield <strong>4%</strong> ÷ 12 = <strong>$1,000/mo</strong>. That\'s how passive income works — first accumulate capital, then live off dividends.</div>' }
+  },
+  's-real': {
+    ru: { title: 'Реальная стоимость', body: '<p>Покупательная способность вашего капитала в <strong>сегодняшних деньгах</strong> с учётом инфляции. Показывает, сколько реально будет стоить ваш капитал.</p><p>Формула: <strong>Капитал ÷ (1 + инфляция)^лет</strong></p><div class="example">Пример: через 20 лет у вас <strong>$200 000</strong>. При инфляции 5%/год это эквивалентно примерно <strong>$75 000</strong> сегодняшних денег. То есть на $200 000 в будущем вы купите столько же, сколько сейчас на $75 000. Но это всё равно лучше, чем хранить деньги без инвестирования!</div>' },
+    en: { title: 'Real Value (Inflation-Adjusted)', body: '<p>Your capital\'s purchasing power in <strong>today\'s money</strong>, adjusted for inflation. Shows what your capital will actually be worth.</p><p>Formula: <strong>Capital ÷ (1 + inflation)^years</strong></p><div class="example">Example: in 20 years you have <strong>$200,000</strong>. At 5%/yr inflation, that equals roughly <strong>$75,000</strong> in today\'s money. Meaning $200,000 in the future buys what $75,000 buys today. But that\'s still far better than not investing!</div>' }
+  },
+  chart: {
+    ru: { title: 'График роста капитала', body: '<p>Три линии на графике:</p><p>• <strong style="color:#10B981">Зелёная</strong> — номинальный рост портфеля (рост + реинвестирование)<br>• <strong style="color:#64748B">Серая пунктирная</strong> — только ваши взносы без роста<br>• <strong style="color:#EF4444">Красная пунктирная</strong> — реальная стоимость с учётом инфляции</p><div class="example">Разрыв между зелёной и серой линиями — это сложный процент в действии. Чем дольше срок, тем шире этот разрыв.</div>' },
+    en: { title: 'Capital Growth Chart', body: '<p>Three lines on the chart:</p><p>• <strong style="color:#10B981">Green</strong> — nominal portfolio growth (returns + reinvestment)<br>• <strong style="color:#64748B">Grey dashed</strong> — your contributions only, no growth<br>• <strong style="color:#EF4444">Red dashed</strong> — real value adjusted for inflation</p><div class="example">The gap between green and grey lines is compound interest at work. The longer the horizon, the wider the gap.</div>' }
+  },
+  results: {
+    ru: { title: 'Результаты инвестирования', body: '<p>Ключевые выводы по вашему сценарию: сколько вы вложили, сколько заработали, и какой пассивный доход ожидается.</p><div class="example">Показатель «в X раз больше вложенного» — это мультипликатор. Если он равен 3× — значит на каждый вложенный рубль вы получили 3 рубля обратно.</div>' },
+    en: { title: 'Investment Results', body: '<p>Key takeaways from your scenario: how much you invested, how much you earned, and what passive income to expect.</p><div class="example">The "X× your money" figure is a multiplier. A 3× means every dollar you put in came back as 3 dollars.</div>' }
+  },
+  compound: {
+    ru: { title: 'Сложный процент', body: '<p>Сложный процент — это начисление дохода не только на вложенный капитал, но и на уже заработанный доход. Эффект ускоряется со временем.</p><div class="example">Пример: $10 000 при 9%/год.<br>Год 1: +$900 → итого $10 900<br>Год 2: +$981 → итого $11 881<br>Год 10: +$2 117 → итого $23 674<br><br>Каждый год процент начисляется на бо́льшую базу — вот почему вторая половина срока всегда даёт больше, чем первая.</div>' },
+    en: { title: 'Compound Interest', body: '<p>Compound interest means earning returns not just on your invested capital, but also on previously earned returns. The effect accelerates over time.</p><div class="example">Example: $10,000 at 9%/yr.<br>Year 1: +$900 → total $10,900<br>Year 2: +$981 → total $11,881<br>Year 10: +$2,117 → total $23,674<br><br>Each year interest is calculated on a larger base — that\'s why the second half of any investment period always generates more than the first.</div>' }
+  },
+  table: {
+    ru: { title: 'Таблица по годам', body: '<p>Детальный срез по каждому году: как растёт капитал, сколько из него — ваши деньги, а сколько — прибыль рынка, и какой пассивный доход можно было бы получать на каждом этапе.</p><div class="example">Совет: обратите внимание, как ускоряется рост во второй половине срока. Это и есть магия сложного процента — первые годы «разгоняют» капитал, а дальше он растёт сам.</div>' },
+    en: { title: 'Year-by-Year Table', body: '<p>A detailed breakdown for each year: how capital grows, how much is your money vs. market gains, and what passive income would look like at each stage.</p><div class="example">Tip: notice how growth accelerates in the second half. That\'s the magic of compounding — early years build the base, then it grows on its own.</div>' }
+  },
+  'col-capital': {
+    ru: { title: 'Капитал', body: '<p>Общая стоимость вашего портфеля на конец этого года — сумма всех взносов плюс накопленная прибыль.</p><div class="example">Это номинальная (рыночная) стоимость. Для реальной покупательной способности смотрите колонку «Реально».</div>' },
+    en: { title: 'Capital', body: '<p>Total portfolio value at the end of this year — all contributions plus accumulated gains.</p><div class="example">This is the nominal (market) value. For real purchasing power, see the "Real" column.</div>' }
+  },
+  'col-invested': {
+    ru: { title: 'Вложено', body: '<p>Сколько реальных денег вы внесли к этому году нарастающим итогом: начальный капитал + все ежемесячные взносы за прошедшие годы.</p><div class="example">Разница между «Капитал» и «Вложено» — это чистая прибыль от инвестирования на данный момент.</div>' },
+    en: { title: 'Invested', body: '<p>How much real money you\'ve deposited by this year (cumulative): starting capital + all monthly contributions to date.</p><div class="example">The difference between "Capital" and "Invested" is your net profit from investing at this point.</div>' }
+  },
+  'col-profit': {
+    ru: { title: 'Прибыль', body: '<p>Разница между текущей стоимостью портфеля и суммой ваших вложений на этот год. Это деньги, которые заработал рынок.</p><div class="example">Если прибыль превышает «Вложено» — ваши деньги уже удвоились. Следите за этим моментом в таблице!</div>' },
+    en: { title: 'Profit', body: '<p>The difference between current portfolio value and your total invested by this year. This is the money the market earned for you.</p><div class="example">When profit exceeds "Invested" — your money has more than doubled. Watch for that moment in the table!</div>' }
+  },
+  'col-div': {
+    ru: { title: 'Дивиденды / мес', body: '<p>Ежемесячный пассивный доход от дивидендов в этом году, если бы вы начали получать выплаты прямо сейчас.</p><div class="example">Пример: вы видите в таблице <strong>$500/мес</strong> на 15-м году. Это значит, что если бы вы остановили пополнения и начали снимать дивиденды — получали бы $500 каждый месяц без продажи активов.</div>' },
+    en: { title: 'Dividends / Month', body: '<p>Monthly passive income from dividends in this year, if you started collecting payouts right now.</p><div class="example">Example: you see <strong>$500/mo</strong> at year 15. That means if you stopped contributing and started collecting — you\'d receive $500 every month without selling any assets.</div>' }
+  },
+  'col-real': {
+    ru: { title: 'Реально (с инфляцией)', body: '<p>Покупательная способность вашего капитала в <strong>сегодняшних деньгах</strong>. Показывает, сколько этот капитал реально стоит с точки зрения того, что на него можно купить.</p><div class="example">Пример: <strong>$200 000</strong> через 20 лет при инфляции 5%/год ≈ <strong>$75 000</strong> сегодняшних денег. Это не плохо — вы всё равно разбогатели. Но важно понимать реальный масштаб.</div>' },
+    en: { title: 'Real Value (Inflation-Adjusted)', body: '<p>Your capital\'s purchasing power in <strong>today\'s money</strong>. Shows what this capital is really worth in terms of what you can buy with it.</p><div class="example">Example: <strong>$200,000</strong> in 20 years at 5%/yr inflation ≈ <strong>$75,000</strong> in today\'s money. That\'s still great — you\'re wealthier. But it\'s important to understand the real scale.</div>' }
+  }
+};
+
+/* ── TOOLTIP LOGIC ── */
+let currentTipBtn = null;
+
+function showTip(btn, key) {
+  const popup = document.getElementById('tip-popup');
+  if (currentTipBtn === btn && popup.classList.contains('visible')) {
+    closeTip(); return;
+  }
+  currentTipBtn = btn;
+  const tip = TIPS[key];
+  if (!tip) return;
+  const t = tip[lang] || tip.ru;
+  document.getElementById('tip-title').textContent = t.title;
+  document.getElementById('tip-body').innerHTML = t.body;
+
+  popup.classList.add('visible');
+
+  // position
+  const br = btn.getBoundingClientRect();
+  const pw = popup.offsetWidth || 320;
+  const ph = popup.offsetHeight || 200;
+  const vw = window.innerWidth;
+  const vh = window.innerHeight;
+
+  let left = br.left + br.width / 2 - pw / 2;
+  let top  = br.bottom + 10;
+
+  if (left + pw > vw - 8) left = vw - pw - 8;
+  if (left < 8) left = 8;
+  if (top + ph > vh - 8) top = br.top - ph - 10;
+
+  popup.style.left = left + 'px';
+  popup.style.top  = top + 'px';
+}
+
+function closeTip() {
+  document.getElementById('tip-popup').classList.remove('visible');
+  currentTipBtn = null;
+}
+
+document.addEventListener('click', e => {
+  if (!e.target.closest('.tip-btn') && !e.target.closest('.tip-popup')) closeTip();
+});
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeTip(); });
+
 /* ── THEME ── */
 function toggleTheme() {
   dark = !dark;
@@ -477,208 +603,205 @@ function toggleTheme() {
 /* ── LANG ── */
 function setLang(l) {
   lang = l;
-  document.getElementById('btn-ru').classList.toggle('active', l === 'ru');
-  document.getElementById('btn-en').classList.toggle('active', l === 'en');
+  document.getElementById('btn-ru').classList.toggle('active', l==='ru');
+  document.getElementById('btn-en').classList.toggle('active', l==='en');
   document.querySelectorAll('[data-ru]').forEach(el => {
-    if (el.tagName === 'INPUT' || el.tagName === 'SELECT') return;
-    const v = el.getAttribute('data-' + l);
+    if (el.tagName==='INPUT'||el.tagName==='SELECT') return;
+    const v = el.getAttribute('data-'+l);
     if (v) el.textContent = v;
   });
+  // update open tip language
+  if (currentTipBtn) {
+    const key = currentTipBtn.getAttribute('onclick').match(/'([^']+)'\)/)?.[1];
+    if (key && TIPS[key]) {
+      const t = TIPS[key][l] || TIPS[key].ru;
+      document.getElementById('tip-title').textContent = t.title;
+      document.getElementById('tip-body').innerHTML = t.body;
+    }
+  }
+  updateCurrencyUnits();
   update();
 }
 
 /* ── FORMAT ── */
 function fmt(n, cur) {
   cur = cur || document.getElementById('currency').value || '$';
-  if (Math.abs(n) >= 1e9) return cur + (n/1e9).toFixed(2) + (lang==='ru'?' млрд':' B');
-  if (Math.abs(n) >= 1e6) return cur + (n/1e6).toFixed(2) + (lang==='ru'?' млн':' M');
-  if (Math.abs(n) >= 1e3) return cur + Math.round(n/1000) + (lang==='ru'?' тыс':' K');
-  return cur + Math.round(n).toLocaleString();
+  if (Math.abs(n)>=1e9) return cur+(n/1e9).toFixed(2)+(lang==='ru'?' млрд':' B');
+  if (Math.abs(n)>=1e6) return cur+(n/1e6).toFixed(2)+(lang==='ru'?' млн':' M');
+  if (Math.abs(n)>=1e3) return cur+Math.round(n/1000)+(lang==='ru'?' тыс':' K');
+  return cur+Math.round(n).toLocaleString();
 }
 
-/* ── SLIDER FILL + THUMB ──
-   pct = fraction 0..1 of the slider.
-   We account for the browser's thumb inset: on a track of width W px,
-   the thumb centre travels from thumbR to W-thumbR.
-   This makes the coloured fill and overlay thumb pixel-perfect.
-*/
-const THUMB_R = 9; // half of 18px thumb
-
-function updateSlider(rangeId, fillId, thumbId, min, max, color) {
-  const inp  = document.getElementById(rangeId);
-  const fill = document.getElementById(fillId);
-  const thumb = document.getElementById(thumbId);
+/* ── SLIDERS ── */
+const THUMB_R = 9;
+function updateSlider(rid, fid, tid, min, max, color) {
+  const inp = document.getElementById(rid);
+  const fill = document.getElementById(fid);
+  const thumb = document.getElementById(tid);
   const wrap = inp.parentElement;
-
-  const frac = (inp.value - min) / (max - min);
-  const wrapW = wrap.offsetWidth || 200;
-  const travelW = wrapW - THUMB_R * 2;
-  const thumbLeft = THUMB_R + frac * travelW;   // px from left edge of wrap
-  const fillPct   = (thumbLeft / wrapW) * 100;  // % for fill width
-
-  fill.style.width = fillPct + '%';
+  const frac = (inp.value-min)/(max-min);
+  const wrapW = wrap.offsetWidth||200;
+  const thumbLeft = THUMB_R + frac*(wrapW-THUMB_R*2);
+  const pct = (thumbLeft/wrapW)*100;
+  fill.style.width = pct+'%';
   fill.style.background = color;
-  thumb.style.left = fillPct + '%';
+  thumb.style.left = pct+'%';
   thumb.style.background = color;
+}
+
+/* ── SLIDER ↔ NUMBER SYNC ── */
+// Config for each field: id suffix → {min, max, step}
+const FIELD_CFG = {
+  initial: { min:0,   max:500000, step:1000 },
+  monthly: { min:0,   max:5000,   step:50   },
+  years:   { min:1,   max:40,     step:1    },
+  return:  { min:0,   max:20,     step:0.5  },
+  div:     { min:0,   max:10,     step:0.25 },
+  infl:    { min:0,   max:20,     step:0.5  },
+};
+
+function clamp(v, min, max) { return Math.min(max, Math.max(min, v)); }
+
+function syncFromSlider(key) {
+  const r = document.getElementById('r-' + key);
+  const n = document.getElementById('n-' + key);
+  if (n) { n.value = r.value; n.classList.remove('invalid'); }
+  update();
+}
+
+function syncFromNumber(key) {
+  const cfg = FIELD_CFG[key];
+  const n = document.getElementById('n-' + key);
+  const r = document.getElementById('r-' + key);
+  const raw = parseFloat(n.value);
+  if (isNaN(raw)) { n.classList.add('invalid'); return; }
+  const clamped = clamp(raw, cfg.min, cfg.max);
+  n.classList.toggle('invalid', raw !== clamped);
+  r.value = clamped;
+  update();
+}
+
+/* ── UPDATE CURRENCY UNIT LABELS ── */
+function updateCurrencyUnits() {
+  const cur = document.getElementById('currency').value;
+  const sym = cur === '₸' ? 'KZT' : 'USD';
+  const mo  = lang === 'ru' ? 'мес' : 'mo';
+  const nu1 = document.getElementById('nu-initial');
+  const nu2 = document.getElementById('nu-monthly');
+  if (nu1) nu1.textContent = sym;
+  if (nu2) nu2.innerHTML = `${sym} / <span data-ru="мес" data-en="mo">${mo}</span>`;
 }
 
 /* ── CALC ── */
 let lastRows = [];
 
-function calcPortfolio(initial, monthly, years, returnRate, divYield, inflRate) {
+function calcPortfolio(initial, monthly, years, ret, divY, infl) {
   const rows = [];
-  let capital = initial;
-  for (let y = 0; y <= years; y++) {
-    const invested = initial + monthly * 12 * y;
-    const profit   = capital - invested;
-    const divMonth = capital * (divYield / 100) / 12;
-    const real     = capital / Math.pow(1 + inflRate / 100, y);
-    rows.push({ year:y, capital:Math.round(capital), invested:Math.round(invested),
-                profit:Math.round(profit), divMonth:Math.round(divMonth), real:Math.round(real) });
-    capital = capital * (1 + returnRate / 100) + monthly * 12;
+  let cap = initial;
+  for (let y=0; y<=years; y++) {
+    const invested = initial + monthly*12*y;
+    const profit   = cap - invested;
+    const divMonth = cap*(divY/100)/12;
+    const real     = cap/Math.pow(1+infl/100,y);
+    rows.push({year:y, capital:Math.round(cap), invested:Math.round(invested),
+               profit:Math.round(profit), divMonth:Math.round(divMonth), real:Math.round(real)});
+    cap = cap*(1+ret/100)+monthly*12;
   }
   return rows;
 }
 
 /* ── CHART ── */
-function getCSSVar(name) {
-  return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
-}
-
 function drawChart(rows) {
-  if (!rows || !rows.length) return;
+  if (!rows||!rows.length) return;
   const svg = document.getElementById('main-chart');
-  const W = 800, H = 260, PT = 14, PB = 30;
-  const n = rows.length;
-  const maxVal = Math.max(...rows.map(r => r.capital));
-  const xf = i => (i / (n - 1)) * W;
-  const yf = v => H - PB - (v / maxVal) * (H - PT - PB);
-
-  const accentColor  = dark ? '#10B981' : '#059669';
-  const investColor  = dark ? '#334155' : '#94A3B8';
-  const realColor    = dark ? '#EF4444' : '#DC2626';
-  const gridColor    = dark ? '#1F2D45' : '#CBD5E1';
-  const lblColor     = dark ? '#64748B' : '#94A3B8';
-
-  const line = (pts, stroke, sw, dash='') =>
-    `<polyline points="${pts}" fill="none" stroke="${stroke}" stroke-width="${sw}" stroke-linejoin="round" stroke-linecap="round" ${dash?`stroke-dasharray="${dash}"`:''} />`;
-  const area = (pts, fill) =>
-    `<polygon points="${pts} ${xf(n-1)},${H-PB} 0,${H-PB}" fill="${fill}" opacity="0.13"/>`;
-
-  const p1 = rows.map((r,i) => `${xf(i)},${yf(r.capital)}`).join(' ');
-  const p2 = rows.map((r,i) => `${xf(i)},${yf(r.invested)}`).join(' ');
-  const p3 = rows.map((r,i) => `${xf(i)},${yf(r.real)}`).join(' ');
-
-  let grid='', xlbl='';
-  for (let g=0;g<=4;g++){
-    const yg = PT + (g/4)*(H-PT-PB);
-    const v  = maxVal*(1-g/4);
-    const l  = v>=1e6?(v/1e6).toFixed(1)+'M':v>=1e3?Math.round(v/1000)+'K':Math.round(v);
-    grid += `<line x1="0" y1="${yg}" x2="${W}" y2="${yg}" stroke="${gridColor}" stroke-width="1"/>`;
-    grid += `<text x="4" y="${yg-4}" fill="${lblColor}" font-size="10" font-family="JetBrains Mono,monospace">${l}</text>`;
+  const W=800, H=260, PT=14, PB=30, n=rows.length;
+  const maxVal = Math.max(...rows.map(r=>r.capital));
+  const xf = i=>(i/(n-1))*W;
+  const yf = v=>H-PB-(v/maxVal)*(H-PT-PB);
+  const ac = dark?'#10B981':'#059669';
+  const ic = dark?'#334155':'#94A3B8';
+  const rc = dark?'#EF4444':'#DC2626';
+  const gc = dark?'#1F2D45':'#CBD5E1';
+  const lc = dark?'#64748B':'#94A3B8';
+  const line=(pts,s,sw,d='')=>`<polyline points="${pts}" fill="none" stroke="${s}" stroke-width="${sw}" stroke-linejoin="round" stroke-linecap="round" ${d?`stroke-dasharray="${d}"`:''} />`;
+  const area=(pts,f)=>`<polygon points="${pts} ${xf(n-1)},${H-PB} 0,${H-PB}" fill="${f}" opacity="0.13"/>`;
+  const p1=rows.map((r,i)=>`${xf(i)},${yf(r.capital)}`).join(' ');
+  const p2=rows.map((r,i)=>`${xf(i)},${yf(r.invested)}`).join(' ');
+  const p3=rows.map((r,i)=>`${xf(i)},${yf(r.real)}`).join(' ');
+  let grid='',xlbl='';
+  for(let g=0;g<=4;g++){
+    const yg=PT+(g/4)*(H-PT-PB), v=maxVal*(1-g/4);
+    const l=v>=1e6?(v/1e6).toFixed(1)+'M':v>=1e3?Math.round(v/1000)+'K':Math.round(v);
+    grid+=`<line x1="0" y1="${yg}" x2="${W}" y2="${yg}" stroke="${gc}" stroke-width="1"/>`;
+    grid+=`<text x="4" y="${yg-4}" fill="${lc}" font-size="10" font-family="JetBrains Mono,monospace">${l}</text>`;
   }
-  const step = Math.max(1,Math.floor(n/8));
-  for (let i=0;i<n;i+=step){
-    xlbl += `<text x="${xf(i)}" y="${H-4}" fill="${lblColor}" font-size="10" font-family="JetBrains Mono,monospace" text-anchor="middle">${rows[i].year>0?'+'+rows[i].year:(lang==='ru'?'Сейчас':'Now')}</text>`;
-  }
-
-  svg.innerHTML = grid + xlbl +
-    area(p1, accentColor) +
-    line(p2, investColor, 1.5, '5 3') +
-    line(p3, realColor, 1.5, '3 3') +
-    line(p1, accentColor, 2.5);
+  const step=Math.max(1,Math.floor(n/8));
+  for(let i=0;i<n;i+=step)
+    xlbl+=`<text x="${xf(i)}" y="${H-4}" fill="${lc}" font-size="10" font-family="JetBrains Mono,monospace" text-anchor="middle">${rows[i].year>0?'+'+rows[i].year:(lang==='ru'?'Сейчас':'Now')}</text>`;
+  svg.innerHTML=grid+xlbl+area(p1,ac)+line(p2,ic,1.5,'5 3')+line(p3,rc,1.5,'3 3')+line(p1,ac,2.5);
 }
 
 /* ── UPDATE ── */
 function update() {
-  const initial = +document.getElementById('r-initial').value;
-  const monthly = +document.getElementById('r-monthly').value;
-  const years   = +document.getElementById('r-years').value;
-  const ret     = +document.getElementById('r-return').value;
-  const divY    = +document.getElementById('r-div').value;
-  const infl    = +document.getElementById('r-infl').value;
-  const cur     = document.getElementById('currency').value;
+  const initial=+document.getElementById('r-initial').value;
+  const monthly=+document.getElementById('r-monthly').value;
+  const years  =+document.getElementById('r-years').value;
+  const ret    =+document.getElementById('r-return').value;
+  const divY   =+document.getElementById('r-div').value;
+  const infl   =+document.getElementById('r-infl').value;
+  const cur    =document.getElementById('currency').value;
+  const grn    =dark?'#10B981':'#059669';
 
-  // slider fills
-  const grn = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || '#10B981';
-  updateSlider('r-initial', 'tf-initial', 'th-initial', 0, 500000, grn);
-  updateSlider('r-monthly', 'tf-monthly', 'th-monthly', 0, 5000,   grn);
-  updateSlider('r-years',   'tf-years',   'th-years',   1, 40,     grn);
-  updateSlider('r-return',  'tf-return',  'th-return',  0, 20,     grn);
-  updateSlider('r-div',     'tf-div',     'th-div',     0, 10,     '#F59E0B');
-  updateSlider('r-infl',    'tf-infl',    'th-infl',    0, 20,     '#EF4444');
+  updateCurrencyUnits();
+  updateSlider('r-initial','tf-initial','th-initial',0,500000,grn);
+  updateSlider('r-monthly','tf-monthly','th-monthly',0,5000,grn);
+  updateSlider('r-years',  'tf-years',  'th-years',  1,40,grn);
+  updateSlider('r-return', 'tf-return', 'th-return', 0,20,grn);
+  updateSlider('r-div',    'tf-div',    'th-div',    0,10,'#F59E0B');
+  updateSlider('r-infl',   'tf-infl',  'th-infl',   0,20,'#EF4444');
 
-  // labels
-  const fK = v => v>=1e6?cur+(v/1e6).toFixed(1)+(lang==='ru'?' млн':' M'):v>=1e3?cur+Math.round(v/1000)+(lang==='ru'?' тыс':' K'):cur+v.toLocaleString();
-  document.getElementById('lbl-initial').textContent = fK(initial);
-  document.getElementById('lbl-monthly').textContent = fK(monthly);
-  document.getElementById('lbl-years').textContent   = years + (lang==='ru'?' лет':' yrs');
-  document.getElementById('lbl-return').textContent  = ret + '%';
-  document.getElementById('lbl-div').textContent     = divY + '%';
-  document.getElementById('lbl-infl').textContent    = infl + '%';
+  const fK=v=>v>=1e6?cur+(v/1e6).toFixed(1)+(lang==='ru'?' млн':' M'):v>=1e3?cur+Math.round(v/1000)+(lang==='ru'?' тыс':' K'):cur+v.toLocaleString();
+  document.getElementById('lbl-initial').textContent=fK(initial);
+  document.getElementById('lbl-monthly').textContent=fK(monthly);
+  document.getElementById('lbl-years').textContent=years+(lang==='ru'?' лет':' yrs');
+  document.getElementById('lbl-return').textContent=ret+'%';
+  document.getElementById('lbl-div').textContent=divY+'%';
+  document.getElementById('lbl-infl').textContent=infl+'%';
 
-  const rows = calcPortfolio(initial, monthly, years, ret, divY, infl);
-  lastRows = rows;
-  const last = rows[rows.length - 1];
+  const rows=calcPortfolio(initial,monthly,years,ret,divY,infl);
+  lastRows=rows;
+  const last=rows[rows.length-1];
 
-  // power number
-  document.getElementById('power-num').textContent = fmt(last.capital, cur);
-  document.getElementById('power-label').textContent = lang==='ru'
-    ? `капитал через ${years} лет`
-    : `capital in ${years} years`;
-
-  // stats
-  document.getElementById('s-invested').textContent = fmt(last.invested, cur);
-  document.getElementById('s-profit').textContent   = fmt(last.profit, cur);
-  document.getElementById('s-profit-sub').textContent = last.invested>0 ? '+' + Math.round(last.profit/last.invested*100) + '%' : '';
-  document.getElementById('s-div').textContent      = fmt(last.divMonth, cur);
-  document.getElementById('s-div-sub').textContent  = fmt(last.divMonth*12, cur) + (lang==='ru'?' / год':' / yr');
-  document.getElementById('s-real').textContent     = fmt(last.real, cur);
+  document.getElementById('power-num').textContent=fmt(last.capital,cur);
+  document.getElementById('power-label').textContent=lang==='ru'?`капитал через ${years} лет`:`capital in ${years} years`;
+  document.getElementById('s-invested').textContent=fmt(last.invested,cur);
+  document.getElementById('s-profit').textContent=fmt(last.profit,cur);
+  document.getElementById('s-profit-sub').textContent=last.invested>0?'+'+Math.round(last.profit/last.invested*100)+'%':'';
+  document.getElementById('s-div').textContent=fmt(last.divMonth,cur);
+  document.getElementById('s-div-sub').textContent=fmt(last.divMonth*12,cur)+(lang==='ru'?' / год':' / yr');
+  document.getElementById('s-real').textContent=fmt(last.real,cur);
 
   drawChart(rows);
 
-  // insights: results
-  const mult = last.invested > 0 ? (last.capital / last.invested).toFixed(1) : '—';
-  document.getElementById('comparison-insights').innerHTML = `
-    <div class="insight green">
-      ${lang==='ru'
-        ? `Вложено: <strong>${fmt(last.invested,cur)}</strong>. Итоговый капитал: <strong>${fmt(last.capital,cur)}</strong> — это в <strong>${mult}×</strong> больше вложенного.`
-        : `Invested: <strong>${fmt(last.invested,cur)}</strong>. Final capital: <strong>${fmt(last.capital,cur)}</strong> — <strong>${mult}×</strong> your money.`}
-    </div>
-    <div class="insight gold">
-      ${lang==='ru'
-        ? `Дивидендный доход к году ${years}: <strong>${fmt(last.divMonth,cur)}/мес</strong> или <strong>${fmt(last.divMonth*12,cur)}/год</strong>.`
-        : `Dividend income by year ${years}: <strong>${fmt(last.divMonth,cur)}/mo</strong> or <strong>${fmt(last.divMonth*12,cur)}/yr</strong>.`}
-    </div>
-    <div class="insight ${infl>0?'red':'green'}">
-      ${lang==='ru'
-        ? `Реальная покупательная способность с учётом инфляции ${infl}%/год: <strong>${fmt(last.real,cur)}</strong> в сегодняшних деньгах.`
-        : `Real purchasing power (${infl}%/yr inflation): <strong>${fmt(last.real,cur)}</strong> in today's money.`}
-    </div>`;
+  const mult=last.invested>0?(last.capital/last.invested).toFixed(1):'—';
+  document.getElementById('comparison-insights').innerHTML=`
+    <div class="insight green">${lang==='ru'?`Вложено: <strong>${fmt(last.invested,cur)}</strong>. Итоговый капитал: <strong>${fmt(last.capital,cur)}</strong> — в <strong>${mult}×</strong> больше вложенного.`:`Invested: <strong>${fmt(last.invested,cur)}</strong>. Final capital: <strong>${fmt(last.capital,cur)}</strong> — <strong>${mult}×</strong> your money.`}</div>
+    <div class="insight gold">${lang==='ru'?`Дивидендный доход к году ${years}: <strong>${fmt(last.divMonth,cur)}/мес</strong> или <strong>${fmt(last.divMonth*12,cur)}/год</strong>.`:`Dividend income by year ${years}: <strong>${fmt(last.divMonth,cur)}/mo</strong> or <strong>${fmt(last.divMonth*12,cur)}/yr</strong>.`}</div>
+    <div class="insight ${infl>0?'red':'green'}">${lang==='ru'?`Реальная покупательная способность (инфляция ${infl}%/год): <strong>${fmt(last.real,cur)}</strong> в сегодняшних деньгах.`:`Real purchasing power (${infl}%/yr inflation): <strong>${fmt(last.real,cur)}</strong> in today's money.`}</div>`;
 
-  // insights: compound
-  const mid = rows[Math.floor(rows.length/2)];
-  const extra = Math.max(0, last.profit - mid.profit * 2);
-  const half = Math.floor(years/2);
-  document.getElementById('compound-insights').innerHTML = `
-    <div class="insight blue">
-      ${lang==='ru'
-        ? `За первые <strong>${half} лет</strong> накоплено ${fmt(mid.capital,cur)}. Вторая половина срока добавляет ещё <strong>${fmt(last.capital-mid.capital,cur)}</strong> — почти вдвое больше.`
-        : `After the first <strong>${half} years</strong>: ${fmt(mid.capital,cur)}. The second half adds <strong>${fmt(last.capital-mid.capital,cur)}</strong> — almost double.`}
-    </div>
-    <div class="insight green">
-      ${lang==='ru'
-        ? `Дополнительная прибыль от реинвестирования (сложный процент): <strong>${fmt(extra,cur)}</strong> — деньги, заработанные уже на ранее заработанных деньгах.`
-        : `Extra profit from compounding: <strong>${fmt(extra,cur)}</strong> — money earned on previously earned money.`}
-    </div>`;
+  const mid=rows[Math.floor(rows.length/2)];
+  const extra=Math.max(0,last.profit-mid.profit*2);
+  const half=Math.floor(years/2);
+  document.getElementById('compound-insights').innerHTML=`
+    <div class="insight blue">${lang==='ru'?`За первые <strong>${half} лет</strong> накоплено ${fmt(mid.capital,cur)}. Вторая половина добавляет ещё <strong>${fmt(last.capital-mid.capital,cur)}</strong> — почти вдвое больше.`:`After the first <strong>${half} years</strong>: ${fmt(mid.capital,cur)}. The second half adds <strong>${fmt(last.capital-mid.capital,cur)}</strong> — almost double.`}</div>
+    <div class="insight green">${lang==='ru'?`Дополнительная прибыль от реинвестирования (сложный процент): <strong>${fmt(extra,cur)}</strong> — деньги, заработанные на ранее заработанных деньгах.`:`Extra profit from compounding: <strong>${fmt(extra,cur)}</strong> — money earned on previously earned money.`}</div>`;
 
-  // table
-  const step = Math.max(1, Math.floor(rows.length/15));
-  let html = '';
-  rows.forEach((r,i) => {
-    if (i%step!==0 && i!==rows.length-1) return;
-    const last_ = i===rows.length-1;
-    html += `<tr class="${last_?'goal-row':''}">
+  const step=Math.max(1,Math.floor(rows.length/15));
+  let html='';
+  rows.forEach((r,i)=>{
+    if(i%step!==0&&i!==rows.length-1) return;
+    const isLast=i===rows.length-1;
+    html+=`<tr class="${isLast?'goal-row':''}">
       <td>${r.year===0?(lang==='ru'?'Сейчас':'Now'):'+'+r.year}</td>
       <td class="hl">${fmt(r.capital,cur)}</td>
       <td>${fmt(r.invested,cur)}</td>
@@ -687,13 +810,10 @@ function update() {
       <td style="color:var(--danger);opacity:.8">${fmt(r.real,cur)}</td>
     </tr>`;
   });
-  document.getElementById('table-body').innerHTML = html;
+  document.getElementById('table-body').innerHTML=html;
 }
 
-// re-run sliders on resize (thumb position depends on wrapper width)
-window.addEventListener('resize', () => update());
-
-// init
+window.addEventListener('resize',()=>{ update(); const p=document.getElementById('tip-popup'); if(p.classList.contains('visible')) closeTip(); });
 update();
 </script>
 </body>
