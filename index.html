@@ -68,28 +68,91 @@
 
   /* TOOLTIP POPUP */
   .tip-popup {
-    display:none;
-    position:fixed;
-    z-index:1000;
-    width:min(320px, calc(100vw - 32px));
-    background:var(--surface);
-    border:1px solid var(--border);
-    border-radius:14px;
-    padding:16px 18px;
-    box-shadow:0 16px 48px rgba(0,0,0,.45);
-    font-size:13px; line-height:1.65; color:var(--text);
-    pointer-events:auto;
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    box-shadow: 0 16px 48px rgba(0,0,0,.45);
+    font-size: 13px; line-height: 1.65; color: var(--text);
+    pointer-events: auto;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
   }
-  body.light .tip-popup { box-shadow:0 8px 32px rgba(0,0,0,.15); }
-  .tip-popup.visible { display:block; }
-  .tip-popup-title { font-family:'JetBrains Mono',monospace; font-size:10px; letter-spacing:2px; text-transform:uppercase; color:var(--accent); margin-bottom:10px; }
-  .tip-popup p { color:var(--muted); margin-bottom:8px; }
-  .tip-popup p:last-child { margin-bottom:0; }
-  .tip-popup strong { color:var(--text); }
-  .tip-popup .example { background:var(--surface2); border-left:3px solid var(--accent); border-radius:0 8px 8px 0; padding:10px 12px; margin-top:10px; font-size:12px; color:var(--muted); }
-  .tip-popup .example strong { color:var(--accent); }
-  .tip-close { position:absolute; top:12px; right:14px; background:none; border:none; color:var(--muted); cursor:pointer; font-size:16px; line-height:1; padding:2px; }
-  .tip-close:hover { color:var(--text); }
+  body.light .tip-popup { box-shadow: 0 8px 32px rgba(0,0,0,.15); }
+  .tip-popup.visible { display: flex; flex-direction: column; }
+
+  /* DESKTOP: small floating popup */
+  @media (min-width: 541px) {
+    .tip-popup {
+      width: min(340px, calc(100vw - 32px));
+      max-height: min(480px, calc(100vh - 80px));
+      border-radius: 14px;
+      padding: 16px 18px 18px;
+    }
+  }
+
+  /* MOBILE: full-width bottom sheet */
+  @media (max-width: 540px) {
+    .tip-popup {
+      left: 0 !important;
+      right: 0 !important;
+      bottom: 0 !important;
+      top: auto !important;
+      width: 100% !important;
+      max-height: 75vh;
+      border-radius: 20px 20px 0 0;
+      border-bottom: none;
+      padding: 20px 20px 32px;
+    }
+    /* drag handle bar */
+    .tip-popup::before {
+      content: '';
+      display: block;
+      width: 36px; height: 4px;
+      background: var(--border);
+      border-radius: 2px;
+      margin: 0 auto 16px;
+      flex-shrink: 0;
+    }
+    /* dim overlay controlled by .active class in JS */
+  }
+
+  .tip-overlay {
+    position: fixed; inset: 0; z-index: 999;
+    background: rgba(0,0,0,.45);
+    display: none;
+    pointer-events: none;
+  }
+  .tip-overlay.active {
+    display: block;
+    pointer-events: auto;
+  }
+
+  .tip-popup-title {
+    font-family: 'JetBrains Mono', monospace; font-size: 10px;
+    letter-spacing: 2px; text-transform: uppercase;
+    color: var(--accent); margin-bottom: 10px; flex-shrink: 0;
+  }
+  .tip-popup-body { overflow-y: auto; -webkit-overflow-scrolling: touch; flex: 1; min-height: 0; }
+  .tip-popup-body p { color: var(--muted); margin-bottom: 8px; }
+  .tip-popup-body p:last-child { margin-bottom: 0; }
+  .tip-popup-body strong { color: var(--text); }
+  .tip-popup-body hr { border: none; border-top: 1px solid var(--border); margin: 12px 0; }
+  .tip-popup-body .example {
+    background: var(--surface2); border-left: 3px solid var(--accent);
+    border-radius: 0 8px 8px 0; padding: 10px 12px;
+    margin-top: 10px; font-size: 12px; color: var(--muted);
+  }
+  .tip-popup-body .example strong { color: var(--accent); }
+  .tip-close {
+    position: absolute; top: 12px; right: 14px;
+    background: var(--surface2); border: 1px solid var(--border);
+    color: var(--muted); cursor: pointer;
+    font-size: 13px; line-height: 1; padding: 4px 7px;
+    border-radius: 6px; flex-shrink: 0;
+  }
+  .tip-close:hover { color: var(--text); background: var(--border); }
 
   /* SLIDERS */
   .track-wrap { position:relative; height:20px; }
@@ -97,6 +160,17 @@
   .track-fill { position:absolute; left:0; top:8px; height:4px; border-radius:2px; pointer-events:none; z-index:1; transition:width .08s linear; }
   .track-wrap input[type=range] { position:absolute; inset:0; width:100%; height:100%; opacity:0; cursor:pointer; z-index:2; margin:0; }
   .thumb-overlay { position:absolute; top:50%; transform:translate(-50%,-50%); width:18px; height:18px; border-radius:50%; pointer-events:none; z-index:1; transition:left .08s linear; }
+
+  /* FREQUENCY TOGGLE */
+  .freq-toggle { display:flex; gap:4px; background:var(--surface2); border-radius:10px; padding:4px; }
+  .freq-btn {
+    flex:1; font-family:'JetBrains Mono',monospace; font-size:11px; font-weight:600;
+    letter-spacing:.5px; padding:7px 10px; border-radius:7px; border:none;
+    background:transparent; color:var(--muted); cursor:pointer; transition:all .2s;
+    text-align:center;
+  }
+  .freq-btn.active { background:var(--surface); color:var(--text); box-shadow:0 1px 4px rgba(0,0,0,.25); }
+  body.light .freq-btn.active { box-shadow:0 1px 4px rgba(0,0,0,.12); }
 
   /* SELECT */
   .currency-select { font-family:'JetBrains Mono',monospace; font-size:13px; background:var(--surface2); border:1px solid var(--border); color:var(--text); padding:8px 10px; border-radius:8px; outline:none; cursor:pointer; width:100%; transition:background .25s,border-color .25s; }
@@ -172,11 +246,14 @@
 </head>
 <body>
 
-<!-- TOOLTIP POPUP (single shared, moved via JS) -->
+<!-- DIM OVERLAY (mobile bottom sheet) -->
+<div class="tip-overlay" id="tip-overlay" onclick="closeTip()"></div>
+
+<!-- TOOLTIP POPUP -->
 <div class="tip-popup" id="tip-popup">
   <button class="tip-close" onclick="closeTip()">✕</button>
   <div class="tip-popup-title" id="tip-title"></div>
-  <div id="tip-body"></div>
+  <div class="tip-popup-body" id="tip-body"></div>
 </div>
 
 <!-- TOP BAR -->
@@ -239,6 +316,19 @@
         <div class="num-input-wrap">
           <input type="number" class="num-input" id="n-monthly" min="0" max="5000" step="50" value="300" oninput="syncFromNumber('monthly')" placeholder="300">
           <span class="num-unit" id="nu-monthly">USD / <span data-ru="мес" data-en="mo">мес</span></span>
+        </div>
+      </div>
+
+      <div class="field">
+        <div class="field-label-row" style="margin-bottom:8px">
+          <div class="field-label-left">
+            <span data-ru="Периодичность взносов" data-en="Contribution Frequency">Периодичность взносов</span>
+            <button class="tip-btn" onclick="showTip(this,'freq')">?</button>
+          </div>
+        </div>
+        <div class="freq-toggle">
+          <button class="freq-btn active" id="freq-monthly" onclick="setFreq('monthly')" data-ru="Ежемесячно" data-en="Monthly">Ежемесячно</button>
+          <button class="freq-btn" id="freq-quarterly" onclick="setFreq('quarterly')" data-ru="Ежеквартально" data-en="Quarterly">Ежеквартально</button>
         </div>
       </div>
 
@@ -390,6 +480,7 @@
       </div>
       <div class="chart-legend">
         <div class="legend-item"><div class="legend-dot" style="background:var(--accent)"></div><span data-ru="Портфель" data-en="Portfolio">Портфель</span></div>
+        <div class="legend-item"><div class="legend-dot" style="background:#F59E0B"></div><span>S&amp;P 500 <span data-ru="бенчмарк" data-en="benchmark">бенчмарк</span> (10.2%/yr)</span></div>
         <div class="legend-item"><div class="legend-dot" style="background:#334155"></div><span data-ru="Только взносы" data-en="Contributions only">Только взносы</span></div>
         <div class="legend-item"><div class="legend-dot" style="background:var(--danger);opacity:.7"></div><span data-ru="Реально (с инфляцией)" data-en="Real (inflation-adj.)">Реально</span></div>
       </div>
@@ -462,9 +553,38 @@
 <script>
 let lang = 'ru';
 let dark = true;
+let freq = 'monthly'; // 'monthly' | 'quarterly'
+
+function setFreq(f) {
+  freq = f;
+  document.getElementById('freq-monthly').classList.toggle('active', f === 'monthly');
+  document.getElementById('freq-quarterly').classList.toggle('active', f === 'quarterly');
+  // update label for monthly contribution field
+  updateContribLabel();
+  updateCurrencyUnits();
+  update();
+}
+
+function updateContribLabel() {
+  const el = document.querySelector('[data-ru="Ежемесячный взнос"]');
+  if (!el) return;
+  if (freq === 'quarterly') {
+    el.setAttribute('data-ru', 'Взнос в квартал');
+    el.setAttribute('data-en', 'Quarterly Contribution');
+    el.textContent = lang === 'ru' ? 'Взнос в квартал' : 'Quarterly Contribution';
+  } else {
+    el.setAttribute('data-ru', 'Ежемесячный взнос');
+    el.setAttribute('data-en', 'Monthly Contribution');
+    el.textContent = lang === 'ru' ? 'Ежемесячный взнос' : 'Monthly Contribution';
+  }
+}
 
 /* ── TIPS DATA ── */
 const TIPS = {
+  freq: {
+    ru: { title: 'Периодичность взносов', body: '<p>Как часто вы пополняете портфель: <strong>ежемесячно</strong> (12 раз в год) или <strong>ежеквартально</strong> (4 раза в год).</p><div class="example">Ежемесячные взносы дают небольшое преимущество за счёт более частого реинвестирования. Пример: $300/мес = $3 600/год vs $900/квартал = $3 600/год. Итог почти одинаков, но месячные взносы дадут чуть больше за счёт DCA-эффекта.</div>' },
+    en: { title: 'Contribution Frequency', body: '<p>How often you add money: <strong>monthly</strong> (12×/yr) or <strong>quarterly</strong> (4×/yr).</p><div class="example">Monthly contributions have a slight edge — money gets invested sooner. $300/mo = $3,600/yr vs $900/qtr = $3,600/yr. Same total, but monthly yields slightly more due to the DCA effect.</div>' }
+  },
   initial: {
     ru: { title: 'Начальный капитал', body: '<p>Сумма, с которой вы начинаете инвестировать прямо сейчас. Это могут быть уже накопленные сбережения или первый взнос.</p><div class="example">Пример: у вас есть <strong>$5 000</strong> на счёте — это и есть начальный капитал. Даже небольшая стартовая сумма значительно ускоряет рост благодаря сложному проценту.</div>' },
     en: { title: 'Starting Capital', body: '<p>The amount you invest right now. This can be existing savings or your first deposit.</p><div class="example">Example: you have <strong>$5,000</strong> saved up — that\'s your starting capital. Even a small amount gives compound interest more time to work.</div>' }
@@ -510,8 +630,8 @@ const TIPS = {
     en: { title: 'Real Value (Inflation-Adjusted)', body: '<p>Your capital\'s purchasing power in <strong>today\'s money</strong>, adjusted for inflation. Shows what your capital will actually be worth.</p><p>Formula: <strong>Capital ÷ (1 + inflation)^years</strong></p><div class="example">Example: in 20 years you have <strong>$200,000</strong>. At 5%/yr inflation, that equals roughly <strong>$75,000</strong> in today\'s money. Meaning $200,000 in the future buys what $75,000 buys today. But that\'s still far better than not investing!</div>' }
   },
   chart: {
-    ru: { title: 'График роста капитала', body: '<p>Три линии на графике:</p><p>• <strong style="color:#10B981">Зелёная</strong> — номинальный рост портфеля (рост + реинвестирование)<br>• <strong style="color:#64748B">Серая пунктирная</strong> — только ваши взносы без роста<br>• <strong style="color:#EF4444">Красная пунктирная</strong> — реальная стоимость с учётом инфляции</p><div class="example">Разрыв между зелёной и серой линиями — это сложный процент в действии. Чем дольше срок, тем шире этот разрыв.</div>' },
-    en: { title: 'Capital Growth Chart', body: '<p>Three lines on the chart:</p><p>• <strong style="color:#10B981">Green</strong> — nominal portfolio growth (returns + reinvestment)<br>• <strong style="color:#64748B">Grey dashed</strong> — your contributions only, no growth<br>• <strong style="color:#EF4444">Red dashed</strong> — real value adjusted for inflation</p><div class="example">The gap between green and grey lines is compound interest at work. The longer the horizon, the wider the gap.</div>' }
+    ru: { title: 'График роста капитала', body: '<p>На графике четыре линии:</p><p>• <strong style="color:#10B981">Зелёная</strong> — рост вашего портфеля (взносы + доходность + реинвестирование)<br>• <strong style="color:#F59E0B">Жёлтая пунктирная</strong> — бенчмарк S&P 500 (10.2%/год)<br>• <strong style="color:#64748B">Серая пунктирная</strong> — только ваши взносы без роста<br>• <strong style="color:#EF4444">Красная пунктирная</strong> — реальная стоимость с учётом инфляции</p><hr style="border:none;border-top:1px solid #1F2D45;margin:12px 0"><p><strong>Что такое S&P 500?</strong><br>S&P 500 — индекс 500 крупнейших публичных компаний США: Apple, Microsoft, Nvidia, Amazon и др. Это главный мировой эталон фондового рынка. Его средняя годовая доходность с учётом реинвестирования дивидендов составляет <strong>~10.2% в год</strong> — это геометрическое среднее за 1928–2024 гг. по данным NYU Stern.</p><div class="example">Зачем он на графике? S&P 500 — это «планка по умолчанию». Если ваш портфель растёт быстрее жёлтой линии — вы обгоняете рынок. Медленнее — значит, возможно, стоит пересмотреть стратегию. Большинство активных управляющих не могут стабильно обгонять этот индекс годами.</div>' },
+    en: { title: 'Capital Growth Chart', body: '<p>Four lines on the chart:</p><p>• <strong style="color:#10B981">Green</strong> — your portfolio growth (contributions + returns + reinvestment)<br>• <strong style="color:#F59E0B">Yellow dashed</strong> — S&P 500 benchmark (10.2%/yr)<br>• <strong style="color:#64748B">Grey dashed</strong> — your contributions only, no growth<br>• <strong style="color:#EF4444">Red dashed</strong> — real value adjusted for inflation</p><hr style="border:none;border-top:1px solid #1F2D45;margin:12px 0"><p><strong>What is the S&P 500?</strong><br>The S&P 500 is an index of the 500 largest US public companies: Apple, Microsoft, Nvidia, Amazon and others. It\'s the world\'s primary stock market benchmark. Its average annual return including reinvested dividends is <strong>~10.2% per year</strong> — the geometric mean from 1928–2024 per NYU Stern data.</p><div class="example">Why is it on the chart? The S&P 500 is the default yardstick. If your portfolio grows faster than the yellow line — you\'re beating the market. Slower — it may be worth revisiting your strategy. Most active fund managers fail to consistently beat this index over the long run.</div>' }
   },
   results: {
     ru: { title: 'Результаты инвестирования', body: '<p>Ключевые выводы по вашему сценарию: сколько вы вложили, сколько заработали, и какой пассивный доход ожидается.</p><div class="example">Показатель «в X раз больше вложенного» — это мультипликатор. Если он равен 3× — значит на каждый вложенный рубль вы получили 3 рубля обратно.</div>' },
@@ -551,7 +671,8 @@ const TIPS = {
 let currentTipBtn = null;
 
 function showTip(btn, key) {
-  const popup = document.getElementById('tip-popup');
+  const popup   = document.getElementById('tip-popup');
+  const overlay = document.getElementById('tip-overlay');
   if (currentTipBtn === btn && popup.classList.contains('visible')) {
     closeTip(); return;
   }
@@ -562,28 +683,49 @@ function showTip(btn, key) {
   document.getElementById('tip-title').textContent = t.title;
   document.getElementById('tip-body').innerHTML = t.body;
 
+  // reset scroll
+  document.getElementById('tip-body').scrollTop = 0;
+
+  const isMobile = window.innerWidth <= 540;
+
+  if (isMobile) {
+    // bottom sheet — CSS handles positioning via media query
+    popup.style.left = '';
+    popup.style.top  = '';
+    overlay.classList.add('active');
+  } else {
+    overlay.classList.remove('active');
+    popup.classList.add('visible');
+
+    // position after render so offsetWidth/Height are correct
+    requestAnimationFrame(() => {
+      const br  = btn.getBoundingClientRect();
+      const pw  = popup.offsetWidth  || 340;
+      const ph  = popup.offsetHeight || 240;
+      const vw  = window.innerWidth;
+      const vh  = window.innerHeight;
+      const topBar = 52; // fixed top bar height
+
+      let left = br.left + br.width / 2 - pw / 2;
+      let top  = br.bottom + 10;
+
+      if (left + pw > vw - 8) left = vw - pw - 8;
+      if (left < 8) left = 8;
+      // if popup goes below viewport, show above the button
+      if (top + ph > vh - 8) top = Math.max(topBar + 8, br.top - ph - 10);
+
+      popup.style.left = left + 'px';
+      popup.style.top  = top  + 'px';
+    });
+    return; // already added 'visible' above
+  }
+
   popup.classList.add('visible');
-
-  // position
-  const br = btn.getBoundingClientRect();
-  const pw = popup.offsetWidth || 320;
-  const ph = popup.offsetHeight || 200;
-  const vw = window.innerWidth;
-  const vh = window.innerHeight;
-
-  let left = br.left + br.width / 2 - pw / 2;
-  let top  = br.bottom + 10;
-
-  if (left + pw > vw - 8) left = vw - pw - 8;
-  if (left < 8) left = 8;
-  if (top + ph > vh - 8) top = br.top - ph - 10;
-
-  popup.style.left = left + 'px';
-  popup.style.top  = top + 'px';
 }
 
 function closeTip() {
   document.getElementById('tip-popup').classList.remove('visible');
+  document.getElementById('tip-overlay').classList.remove('active');
   currentTipBtn = null;
 }
 
@@ -597,7 +739,7 @@ function toggleTheme() {
   dark = !dark;
   document.body.classList.toggle('light', !dark);
   document.getElementById('theme-btn').textContent = dark ? '🌙' : '☀️';
-  drawChart(lastRows);
+  drawChart(lastRows, lastSP500Rows);
 }
 
 /* ── LANG ── */
@@ -685,49 +827,67 @@ function syncFromNumber(key) {
 function updateCurrencyUnits() {
   const cur = document.getElementById('currency').value;
   const sym = cur === '₸' ? 'KZT' : 'USD';
-  const mo  = lang === 'ru' ? 'мес' : 'mo';
+  const periodLabel = freq === 'quarterly' ? (lang==='ru'?'кв':'qtr') : (lang==='ru'?'мес':'mo');
   const nu1 = document.getElementById('nu-initial');
   const nu2 = document.getElementById('nu-monthly');
   if (nu1) nu1.textContent = sym;
-  if (nu2) nu2.innerHTML = `${sym} / <span data-ru="мес" data-en="mo">${mo}</span>`;
+  if (nu2) nu2.textContent = `${sym} / ${periodLabel}`;
 }
 
 /* ── CALC ── */
 let lastRows = [];
+let lastSP500Rows = [];
 
-function calcPortfolio(initial, monthly, years, ret, divY, infl) {
-  const rows = [];
-  let cap = initial;
-  for (let y=0; y<=years; y++) {
-    const invested = initial + monthly*12*y;
-    const profit   = cap - invested;
-    const divMonth = cap*(divY/100)/12;
-    const real     = cap/Math.pow(1+infl/100,y);
-    rows.push({year:y, capital:Math.round(cap), invested:Math.round(invested),
-               profit:Math.round(profit), divMonth:Math.round(divMonth), real:Math.round(real)});
-    cap = cap*(1+ret/100)+monthly*12;
+const SP500_CAGR = 0.102; // 10.2% — исторический CAGR S&P 500 с 1928 по 2024 (NYU Stern, с реинвестированием дивидендов)
+
+function calcPortfolio(initial, contribution, years, ret, divY, infl, frequency) {
+  // contribution = amount per period; frequency = 'monthly' | 'quarterly'
+  const periodsPerYear = frequency === 'quarterly' ? 4 : 12;
+  const ratePerPeriod  = Math.pow(1 + ret / 100, 1 / periodsPerYear) - 1;
+  const sp500PerPeriod = Math.pow(1 + SP500_CAGR, 1 / periodsPerYear) - 1;
+
+  const rows = [], sp500Rows = [];
+  let cap = initial, sp500Cap = initial;
+  const totalPeriodsPerYear = periodsPerYear;
+
+  for (let y = 0; y <= years; y++) {
+    const invested  = initial + contribution * totalPeriodsPerYear * y;
+    const profit    = cap - invested;
+    const divMonth  = cap * (divY / 100) / 12;
+    const real      = cap / Math.pow(1 + infl / 100, y);
+    rows.push({ year:y, capital:Math.round(cap), invested:Math.round(invested),
+                profit:Math.round(profit), divMonth:Math.round(divMonth), real:Math.round(real) });
+    sp500Rows.push({ year:y, capital:Math.round(sp500Cap) });
+
+    // grow next year period by period
+    for (let p = 0; p < totalPeriodsPerYear; p++) {
+      cap      = cap      * (1 + ratePerPeriod)  + contribution;
+      sp500Cap = sp500Cap * (1 + sp500PerPeriod) + contribution;
+    }
   }
-  return rows;
+  return { rows, sp500Rows };
 }
 
 /* ── CHART ── */
-function drawChart(rows) {
+function drawChart(rows, sp500Rows) {
   if (!rows||!rows.length) return;
   const svg = document.getElementById('main-chart');
   const W=800, H=260, PT=14, PB=30, n=rows.length;
-  const maxVal = Math.max(...rows.map(r=>r.capital));
+  const maxVal = Math.max(...rows.map(r=>r.capital), ...(sp500Rows||[]).map(r=>r.capital));
   const xf = i=>(i/(n-1))*W;
   const yf = v=>H-PB-(v/maxVal)*(H-PT-PB);
-  const ac = dark?'#10B981':'#059669';
-  const ic = dark?'#334155':'#94A3B8';
-  const rc = dark?'#EF4444':'#DC2626';
-  const gc = dark?'#1F2D45':'#CBD5E1';
-  const lc = dark?'#64748B':'#94A3B8';
+  const ac  = dark?'#10B981':'#059669';
+  const spc = '#F59E0B';  // S&P 500 benchmark — gold/amber
+  const ic  = dark?'#334155':'#94A3B8';
+  const rc  = dark?'#EF4444':'#DC2626';
+  const gc  = dark?'#1F2D45':'#CBD5E1';
+  const lc  = dark?'#64748B':'#94A3B8';
   const line=(pts,s,sw,d='')=>`<polyline points="${pts}" fill="none" stroke="${s}" stroke-width="${sw}" stroke-linejoin="round" stroke-linecap="round" ${d?`stroke-dasharray="${d}"`:''} />`;
-  const area=(pts,f)=>`<polygon points="${pts} ${xf(n-1)},${H-PB} 0,${H-PB}" fill="${f}" opacity="0.13"/>`;
+  const area=(pts,f)=>`<polygon points="${pts} ${xf(n-1)},${H-PB} 0,${H-PB}" fill="${f}" opacity="0.10"/>`;
   const p1=rows.map((r,i)=>`${xf(i)},${yf(r.capital)}`).join(' ');
   const p2=rows.map((r,i)=>`${xf(i)},${yf(r.invested)}`).join(' ');
   const p3=rows.map((r,i)=>`${xf(i)},${yf(r.real)}`).join(' ');
+  const p4=sp500Rows?sp500Rows.map((r,i)=>`${xf(i)},${yf(r.capital)}`).join(' '):'';
   let grid='',xlbl='';
   for(let g=0;g<=4;g++){
     const yg=PT+(g/4)*(H-PT-PB), v=maxVal*(1-g/4);
@@ -738,7 +898,12 @@ function drawChart(rows) {
   const step=Math.max(1,Math.floor(n/8));
   for(let i=0;i<n;i+=step)
     xlbl+=`<text x="${xf(i)}" y="${H-4}" fill="${lc}" font-size="10" font-family="JetBrains Mono,monospace" text-anchor="middle">${rows[i].year>0?'+'+rows[i].year:(lang==='ru'?'Сейчас':'Now')}</text>`;
-  svg.innerHTML=grid+xlbl+area(p1,ac)+line(p2,ic,1.5,'5 3')+line(p3,rc,1.5,'3 3')+line(p1,ac,2.5);
+  svg.innerHTML=grid+xlbl+
+    area(p1,ac)+(p4?area(p4,spc):'')+
+    line(p2,ic,1.5,'5 3')+
+    line(p3,rc,1.5,'3 3')+
+    (p4?line(p4,spc,2,'6 3'):'')+
+    line(p1,ac,2.5);
 }
 
 /* ── UPDATE ── */
@@ -760,6 +925,8 @@ function update() {
   updateSlider('r-div',    'tf-div',    'th-div',    0,10,'#F59E0B');
   updateSlider('r-infl',   'tf-infl',  'th-infl',   0,20,'#EF4444');
 
+  const periodsPerYear = freq === 'quarterly' ? 4 : 12;
+  const periodLabel    = freq === 'quarterly' ? (lang==='ru'?'квартал':'quarter') : (lang==='ru'?'мес':'mo');
   const fK=v=>v>=1e6?cur+(v/1e6).toFixed(1)+(lang==='ru'?' млн':' M'):v>=1e3?cur+Math.round(v/1000)+(lang==='ru'?' тыс':' K'):cur+v.toLocaleString();
   document.getElementById('lbl-initial').textContent=fK(initial);
   document.getElementById('lbl-monthly').textContent=fK(monthly);
@@ -768,9 +935,10 @@ function update() {
   document.getElementById('lbl-div').textContent=divY+'%';
   document.getElementById('lbl-infl').textContent=infl+'%';
 
-  const rows=calcPortfolio(initial,monthly,years,ret,divY,infl);
-  lastRows=rows;
+  const {rows, sp500Rows} = calcPortfolio(initial,monthly,years,ret,divY,infl,freq);
+  lastRows=rows; lastSP500Rows=sp500Rows;
   const last=rows[rows.length-1];
+  const lastSP=sp500Rows[sp500Rows.length-1];
 
   document.getElementById('power-num').textContent=fmt(last.capital,cur);
   document.getElementById('power-label').textContent=lang==='ru'?`капитал через ${years} лет`:`capital in ${years} years`;
@@ -781,11 +949,16 @@ function update() {
   document.getElementById('s-div-sub').textContent=fmt(last.divMonth*12,cur)+(lang==='ru'?' / год':' / yr');
   document.getElementById('s-real').textContent=fmt(last.real,cur);
 
-  drawChart(rows);
+  drawChart(rows, sp500Rows);
 
   const mult=last.invested>0?(last.capital/last.invested).toFixed(1):'—';
+  const spDiff = lastSP.capital - last.capital;
+  const spBetter = spDiff > 0;
   document.getElementById('comparison-insights').innerHTML=`
     <div class="insight green">${lang==='ru'?`Вложено: <strong>${fmt(last.invested,cur)}</strong>. Итоговый капитал: <strong>${fmt(last.capital,cur)}</strong> — в <strong>${mult}×</strong> больше вложенного.`:`Invested: <strong>${fmt(last.invested,cur)}</strong>. Final capital: <strong>${fmt(last.capital,cur)}</strong> — <strong>${mult}×</strong> your money.`}</div>
+    <div class="insight ${spBetter?'red':'blue'}">${lang==='ru'
+      ? `S&P 500 (10.2%/год) за тот же срок дал бы <strong>${fmt(lastSP.capital,cur)}</strong> — это <strong>${spBetter?'на '+fmt(spDiff,cur)+' больше':'на '+fmt(-spDiff,cur)+' меньше'}</strong> вашего портфеля.`
+      : `S&P 500 (10.2%/yr) over the same period would yield <strong>${fmt(lastSP.capital,cur)}</strong> — <strong>${spBetter?fmt(spDiff,cur)+' more':''+fmt(-spDiff,cur)+' less'}</strong> than your portfolio.`}</div>
     <div class="insight gold">${lang==='ru'?`Дивидендный доход к году ${years}: <strong>${fmt(last.divMonth,cur)}/мес</strong> или <strong>${fmt(last.divMonth*12,cur)}/год</strong>.`:`Dividend income by year ${years}: <strong>${fmt(last.divMonth,cur)}/mo</strong> or <strong>${fmt(last.divMonth*12,cur)}/yr</strong>.`}</div>
     <div class="insight ${infl>0?'red':'green'}">${lang==='ru'?`Реальная покупательная способность (инфляция ${infl}%/год): <strong>${fmt(last.real,cur)}</strong> в сегодняшних деньгах.`:`Real purchasing power (${infl}%/yr inflation): <strong>${fmt(last.real,cur)}</strong> in today's money.`}</div>`;
 
